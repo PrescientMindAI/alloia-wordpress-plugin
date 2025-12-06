@@ -1,0 +1,59 @@
+# WordPress.org Distribution Ignore File
+# Files and directories listed here will be excluded from the plugin ZIP
+
+# Development files
+.git
+.gitignore
+.gitattributes
+.editorconfig
+.distignore
+node_modules
+vendor
+composer.json
+composer.lock
+package.json
+package-lock.json
+.DS_Store
+Thumbs.db
+
+# Docker development environment
+docker-compose.yml
+Dockerfile
+php.ini
+DOCKER_README.md
+
+# Documentation (keep README for WordPress.org)
+CLEANUP-PLAN.md
+CLEANUP-QUICK-START.md
+
+# Build tools
+webpack.config.js
+.babelrc
+.eslintrc
+.prettierrc
+
+# IDE files
+.vscode
+.idea
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+tests
+phpunit.xml
+.phpunit.result.cache
+
+# CI/CD
+.github
+.travis.yml
+.gitlab-ci.yml
+
+# Logs
+*.log
+error_log
+
+# Backup files
+*.bak
+*.backup
+*~
+
