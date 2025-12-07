@@ -219,17 +219,25 @@ class AlloIA_Plugin_Updater {
         // Get the actual folder name inside the zip
         $source_files = $wp_filesystem->dirlist($remote_source);
         if (!$source_files) {
-            return $source;
+            return new WP_Error('no_files', 'No files found in extracted package');
         }
         
-        // GitHub creates a single folder inside the zip
-        $source_folder = key($source_files);
-        $new_source = trailingslashit($remote_source) . trailingslashit($this->plugin_slug);
+        // GitHub creates a single folder inside the zip like "PrescientMindAI-alloia-wordpress-plugin-abc123"
+        $source_folder_name = key($source_files);
+        $corrected_source = trailingslashit($remote_source) . trailingslashit($source_folder_name);
+        $new_source = trailingslashit($remote_source) . $this->plugin_slug . '/';
+        
+        // Debug logging
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("AlloIA Updater: Renaming $corrected_source to $new_source");
+        }
         
         // Rename to expected plugin slug
-        $wp_filesystem->move($source, $new_source);
+        if ($wp_filesystem->move($corrected_source, $new_source)) {
+            return $new_source;
+        }
         
-        return $new_source;
+        return new WP_Error('rename_failed', 'Failed to rename plugin directory');
     }
     
     /**
