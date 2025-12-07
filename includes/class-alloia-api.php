@@ -261,9 +261,9 @@ class AlloIA_API {
                 $home_url = home_url();
                 $domain = wp_parse_url($home_url, PHP_URL_HOST);
                 
-                // Fallback: if wp_parse_url fails, try manual extraction
+                // Fallback: if wp_parse_url fails, try again
                 if (empty($domain) && !empty($home_url)) {
-                    $parsed = parse_url($home_url);
+                    $parsed = wp_parse_url($home_url);
                     $domain = isset($parsed['host']) ? $parsed['host'] : '';
                 }
             }

@@ -81,7 +81,7 @@ class AlloIA_Core {
         // This runs on every page load to ensure external tools don't recreate it
         $static_llms_txt = ABSPATH . 'llms.txt';
         if (file_exists($static_llms_txt)) {
-            @unlink($static_llms_txt);
+            wp_delete_file($static_llms_txt);
         }
         
         // Check if we need to flush rewrite rules (version update)

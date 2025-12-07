@@ -8,7 +8,7 @@
  * Author URI: https://alloia.ai
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: geo-ia-optimisation-alloia
+ * Text Domain: alloia-woocommerce
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
@@ -131,7 +131,7 @@ class AlloIA_WooCommerce {
     public function wordpress_version_notice() {
         $message = sprintf(
             /* translators: 1: Plugin name 2: Required WordPress version */
-            esc_html__('%1$s requires WordPress %2$s or higher. Please upgrade WordPress to use this plugin.', 'geo-ia-optimisation-alloia'),
+            esc_html__('%1$s requires WordPress %2$s or higher. Please upgrade WordPress to use this plugin.', 'alloia-woocommerce'),
             '<strong>AI GEO optimisation by AlloIA</strong>',
             ALLOIA_MIN_WP_VERSION
         );
@@ -145,7 +145,7 @@ class AlloIA_WooCommerce {
     public function php_version_notice() {
         $message = sprintf(
             /* translators: 1: Plugin name 2: Required PHP version */
-            esc_html__('%1$s requires PHP %2$s or higher. Please contact your hosting provider to upgrade PHP.', 'geo-ia-optimisation-alloia'),
+            esc_html__('%1$s requires PHP %2$s or higher. Please contact your hosting provider to upgrade PHP.', 'alloia-woocommerce'),
             '<strong>AI GEO optimisation by AlloIA</strong>',
             ALLOIA_MIN_PHP_VERSION
         );
@@ -159,7 +159,7 @@ class AlloIA_WooCommerce {
     public function woocommerce_missing_notice() {
         $message = sprintf(
             /* translators: 1: Plugin name 2: WooCommerce */
-            esc_html__('%1$s Pro features (Knowledge Graph & IA Optimisation) require %2$s for product import and optimization. Dashboards work without WooCommerce.', 'geo-ia-optimisation-alloia'),
+            esc_html__('%1$s Pro features (Knowledge Graph & IA Optimisation) require %2$s for product import and optimization. Dashboards work without WooCommerce.', 'alloia-woocommerce'),
             '<strong>AI GEO optimisation by AlloIA</strong>',
             '<strong>WooCommerce</strong>'
         );
@@ -167,7 +167,7 @@ class AlloIA_WooCommerce {
         printf('<div class="notice notice-info is-dismissible"><p>%s <a href="%s">%s</a></p></div>', 
             wp_kses_post($message),
             esc_url(admin_url('plugin-install.php?s=woocommerce&tab=search&type=term')),
-            esc_html__('Install WooCommerce', 'geo-ia-optimisation-alloia')
+            esc_html__('Install WooCommerce', 'alloia-woocommerce')
         );
     }
     
@@ -205,7 +205,7 @@ class AlloIA_WooCommerce {
      */
     public function plugin_action_links($links) {
         $plugin_links = array(
-            '<a href="' . admin_url('admin.php?page=alloia-settings') . '">' . __('Settings', 'geo-ia-optimisation-alloia') . '</a>',
+            '<a href="' . admin_url('admin.php?page=alloia-settings') . '">' . __('Settings', 'alloia-woocommerce') . '</a>',
         );
         
         return array_merge($plugin_links, $links);
@@ -224,14 +224,14 @@ class AlloIA_WooCommerce {
                 'docs' => sprintf(
                     '<a href="%s" aria-label="%s">%s</a>',
                     esc_url('https://alloia.ai/docs'),
-                    esc_attr__('View AI GEO optimisation by AlloIA documentation', 'geo-ia-optimisation-alloia'),
-                    esc_html__('Documentation', 'geo-ia-optimisation-alloia')
+                    esc_attr__('View AI GEO optimisation by AlloIA documentation', 'alloia-woocommerce'),
+                    esc_html__('Documentation', 'alloia-woocommerce')
                 ),
                 'support' => sprintf(
                     '<a href="%s" aria-label="%s">%s</a>',
                     esc_url('https://alloia.ai/support'),
-                    esc_attr__('Visit AI GEO optimisation by AlloIA support', 'geo-ia-optimisation-alloia'),
-                    esc_html__('Support', 'geo-ia-optimisation-alloia')
+                    esc_attr__('Visit AI GEO optimisation by AlloIA support', 'alloia-woocommerce'),
+                    esc_html__('Support', 'alloia-woocommerce')
                 ),
             );
             
@@ -257,13 +257,17 @@ class AlloIA_WooCommerce {
             if (is_admin()) {
                 require_once ALLOIA_PLUGIN_PATH . 'includes/class-alloia-admin.php';
                 
-                // GitHub auto-update system
-                require_once ALLOIA_PLUGIN_PATH . 'includes/class-alloia-updater.php';
-                new AlloIA_Plugin_Updater(
-                    plugin_basename(__FILE__), // 'alloia-woocommerce/alloia-woocommerce.php'
-                    'PrescientMindAI/alloia-wordpress-plugin', // GitHub repo
-                    ALLOIA_VERSION // Current version
-                );
+                // GitHub auto-update system (only for GitHub installations, not WordPress.org)
+                // WordPress.org has its own update system
+                $updater_file = ALLOIA_PLUGIN_PATH . 'includes/class-alloia-updater.php';
+                if (file_exists($updater_file)) {
+                    require_once $updater_file;
+                    new AlloIA_Plugin_Updater(
+                        plugin_basename(__FILE__), // 'alloia-woocommerce/alloia-woocommerce.php'
+                        'PrescientMindAI/alloia-wordpress-plugin', // GitHub repo
+                        ALLOIA_VERSION // Current version
+                    );
+                }
             }
             
             // Website API functionality is now integrated into the main API class
@@ -490,7 +494,7 @@ function alloia_activate() {
         $old_robots_txt = $abspath . '/robots.txt';
         
         if (file_exists($old_llms_txt)) {
-            @unlink($old_llms_txt);
+            wp_delete_file($old_llms_txt);
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('AlloIA Plugin: Deleted old static llms.txt file');
             }

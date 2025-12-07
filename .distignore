@@ -26,6 +26,9 @@ DOCKER_README.md
 CLEANUP-PLAN.md
 CLEANUP-QUICK-START.md
 
+# GitHub auto-updater (not allowed on WordPress.org)
+includes/class-alloia-updater.php
+
 # Build tools
 webpack.config.js
 .babelrc

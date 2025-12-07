@@ -63,8 +63,8 @@ if ($product_count <= 1000) {
     <!-- API Key Management - Always visible -->
     <div class="alloia-card alloia-setting-group" style="margin-top:10px;">
         <div class="alloia-setting-info">
-            <h3><?php esc_html_e('API Key Management', 'geo-ia-optimisation-alloia'); ?></h3>
-            <p><?php esc_html_e('Enter your AlloIA API key to enable product synchronization.', 'geo-ia-optimisation-alloia'); ?></p>
+            <h3><?php esc_html_e('API Key Management', 'alloia-woocommerce'); ?></h3>
+            <p><?php esc_html_e('Enter your AlloIA API key to enable product synchronization.', 'alloia-woocommerce'); ?></p>
             <?php 
             $api_key = get_option('alloia_api_key_encrypted', get_option('alloia_api_key', ''));
             $api_key_valid = false;
@@ -81,7 +81,7 @@ if ($product_count <= 1000) {
                            value="<?php echo esc_attr($api_key); ?>" 
                            class="regular-text" 
                            style="width: 100%; padding-right: 40px;" 
-                           placeholder="<?php esc_attr_e('Enter your API key...', 'geo-ia-optimisation-alloia'); ?>" />
+                           placeholder="<?php esc_attr_e('Enter your API key...', 'alloia-woocommerce'); ?>" />
                     <span id="api_key_status" class="api-key-status" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
                         <?php if ($api_key_valid): ?>
                             <span class="dashicons dashicons-yes-alt" style="color: #46b450; font-size: 20px;"></span>
@@ -91,7 +91,7 @@ if ($product_count <= 1000) {
                     </span>
                 </div>
                 <div style="margin-top: 10px;">
-                    <input type="submit" name="activate_license" value="<?php esc_attr_e('Save API Key', 'geo-ia-optimisation-alloia'); ?>" class="button button-primary" />
+                    <input type="submit" name="activate_license" value="<?php esc_attr_e('Save API Key', 'alloia-woocommerce'); ?>" class="button button-primary" />
                 </div>
             </form>
         </div>
@@ -119,33 +119,33 @@ if ($product_count <= 1000) {
     }
     ?>
     <div class="alloia-card alloia-setting-group" style="margin-top:20px;">
-        <h3><?php esc_html_e('Product Sync', 'geo-ia-optimisation-alloia'); ?></h3>
+        <h3><?php esc_html_e('Product Sync', 'alloia-woocommerce'); ?></h3>
         
         <?php if (!$has_access): ?>
             <div class="notice notice-warning" style="margin: 15px 0;">
-                <p><strong><?php esc_html_e('Domain Validation Required', 'geo-ia-optimisation-alloia'); ?></strong></p>
-                <p><?php esc_html_e('To sync products, your domain must be validated. Please complete the following steps:', 'geo-ia-optimisation-alloia'); ?></p>
+                <p><strong><?php esc_html_e('Domain Validation Required', 'alloia-woocommerce'); ?></strong></p>
+                <p><?php esc_html_e('To sync products, your domain must be validated. Please complete the following steps:', 'alloia-woocommerce'); ?></p>
                 
                 <ul style="margin-left: 20px; margin-top: 10px;">
                     <li style="<?php echo ($checks['api_key_valid'] ?? false) ? 'color: green;' : 'color: red;'; ?>">
                         <?php if ($checks['api_key_valid'] ?? false): ?>
-                            ✓ <?php esc_html_e('API Key is valid', 'geo-ia-optimisation-alloia'); ?>
+                            ✓ <?php esc_html_e('API Key is valid', 'alloia-woocommerce'); ?>
                         <?php else: ?>
-                            ✗ <?php esc_html_e('API Key is invalid or missing', 'geo-ia-optimisation-alloia'); ?>
+                            ✗ <?php esc_html_e('API Key is invalid or missing', 'alloia-woocommerce'); ?>
                         <?php endif; ?>
                     </li>
                     <li style="<?php echo ($checks['domain_associated'] ?? false) ? 'color: green;' : 'color: red;'; ?>">
                         <?php if ($checks['domain_associated'] ?? false): ?>
-                            ✓ <?php printf(esc_html__('Domain "%s" is associated with your account', 'geo-ia-optimisation-alloia'), esc_html($current_domain)); ?>
+                            ✓ <?php printf(esc_html__('Domain "%s" is associated with your account', 'alloia-woocommerce'), esc_html($current_domain)); ?>
                         <?php else: ?>
-                            ✗ <?php printf(esc_html__('Domain "%s" is not associated with your account', 'geo-ia-optimisation-alloia'), esc_html($current_domain)); ?>
+                            ✗ <?php printf(esc_html__('Domain "%s" is not associated with your account', 'alloia-woocommerce'), esc_html($current_domain)); ?>
                         <?php endif; ?>
                     </li>
                     <li style="<?php echo ($checks['domain_validated'] ?? false) ? 'color: green;' : 'color: red;'; ?>">
                         <?php if ($checks['domain_validated'] ?? false): ?>
-                            ✓ <?php esc_html_e('Domain is validated', 'geo-ia-optimisation-alloia'); ?>
+                            ✓ <?php esc_html_e('Domain is validated', 'alloia-woocommerce'); ?>
                         <?php else: ?>
-                            ✗ <?php esc_html_e('Domain validation pending', 'geo-ia-optimisation-alloia'); ?>
+                            ✗ <?php esc_html_e('Domain validation pending', 'alloia-woocommerce'); ?>
                         <?php endif; ?>
                     </li>
                 </ul>
@@ -153,16 +153,16 @@ if ($product_count <= 1000) {
                 <?php if (!($checks['api_key_valid'] ?? false)): ?>
                     <p style="margin-top: 15px;">
                         <span style="color: #666;">
-                            <?php esc_html_e('Please configure your API key above.', 'geo-ia-optimisation-alloia'); ?>
+                            <?php esc_html_e('Please configure your API key above.', 'alloia-woocommerce'); ?>
                         </span>
                     </p>
                 <?php elseif (!($checks['domain_associated'] ?? false) || !($checks['domain_validated'] ?? false)): ?>
                     <p style="margin-top: 15px;">
                         <a href="https://alloia.ai/dashboard/domains" target="_blank" class="button button-primary">
-                            <?php esc_html_e('Manage Domains in AlloIA Dashboard', 'geo-ia-optimisation-alloia'); ?>
+                            <?php esc_html_e('Manage Domains in AlloIA Dashboard', 'alloia-woocommerce'); ?>
                         </a>
                         <span style="margin-left: 10px; color: #666;">
-                            <?php esc_html_e('Add and validate your domain to enable product sync', 'geo-ia-optimisation-alloia'); ?>
+                            <?php esc_html_e('Add and validate your domain to enable product sync', 'alloia-woocommerce'); ?>
                         </span>
                     </p>
                 <?php endif; ?>
@@ -176,14 +176,14 @@ if ($product_count <= 1000) {
             
             <div style="margin-top: 15px;">
                 <button type="button" id="sync_all_products" class="button button-primary">
-                    <?php esc_html_e('Sync Products', 'geo-ia-optimisation-alloia'); ?>
+                    <?php esc_html_e('Sync Products', 'alloia-woocommerce'); ?>
                 </button>
                 <span id="sync_status" style="margin-left: 10px;"></span>
             </div>
             
             <?php if ($export_stats['last_export']): ?>
                 <p style="margin-top: 10px; color: #646970; font-size: 14px;">
-                    <?php printf(esc_html__('Last sync: %s', 'geo-ia-optimisation-alloia'), esc_html($export_stats['last_export'])); ?>
+                    <?php printf(esc_html__('Last sync: %s', 'alloia-woocommerce'), esc_html($export_stats['last_export'])); ?>
                 </p>
             <?php endif; ?>
         <?php endif; ?>
@@ -256,7 +256,7 @@ if ($product_count <= 1000) {
 <div id="subscription-modal" class="modal" style="display: none;">
     <div class="modal-content">
         <span class="close">&times;</span>
-        <h2><?php esc_html_e('Subscribe to AlloIA', 'geo-ia-optimisation-alloia'); ?></h2>
+        <h2><?php esc_html_e('Subscribe to AlloIA', 'alloia-woocommerce'); ?></h2>
         
         <form method="post" id="subscription-form">
             <?php wp_nonce_field('alloia_subscription', 'alloia_subscription_nonce'); ?>
@@ -265,26 +265,26 @@ if ($product_count <= 1000) {
             <table class="form-table">
                 <tr>
                     <th scope="row">
-                        <label for="customer_email"><?php esc_html_e('Email Address', 'geo-ia-optimisation-alloia'); ?></label>
+                        <label for="customer_email"><?php esc_html_e('Email Address', 'alloia-woocommerce'); ?></label>
                     </th>
                     <td>
                         <input type="email" name="customer_email" id="customer_email" class="regular-text" required>
-                        <p class="description"><?php esc_html_e('We\'ll use this email for your AlloIA account and billing communications.', 'geo-ia-optimisation-alloia'); ?></p>
+                        <p class="description"><?php esc_html_e('We\'ll use this email for your AlloIA account and billing communications.', 'alloia-woocommerce'); ?></p>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="company_name"><?php esc_html_e('Company Name', 'geo-ia-optimisation-alloia'); ?></label>
+                        <label for="company_name"><?php esc_html_e('Company Name', 'alloia-woocommerce'); ?></label>
                     </th>
                     <td>
                         <input type="text" name="company_name" id="company_name" class="regular-text">
-                        <p class="description"><?php esc_html_e('Optional: Your company or organization name.', 'geo-ia-optimisation-alloia'); ?></p>
+                        <p class="description"><?php esc_html_e('Optional: Your company or organization name.', 'alloia-woocommerce'); ?></p>
                     </td>
                 </tr>
             </table>
             
             <p class="submit">
-                <input type="submit" name="alloia_subscribe" class="button button-primary" value="<?php esc_attr_e('Proceed to Checkout', 'geo-ia-optimisation-alloia'); ?>">
+                <input type="submit" name="alloia_subscribe" class="button button-primary" value="<?php esc_attr_e('Proceed to Checkout', 'alloia-woocommerce'); ?>">
             </p>
         </form>
     </div>
@@ -450,8 +450,8 @@ jQuery(document).ready(function($) {
         var originalText = $button.text();
         
         // Disable button and show loading
-        $button.prop('disabled', true).text('<?php esc_html_e('Syncing...', 'geo-ia-optimisation-alloia'); ?>');
-        $status.html('<span style="color: #666;"><?php esc_html_e('Starting sync...', 'geo-ia-optimisation-alloia'); ?></span>');
+        $button.prop('disabled', true).text('<?php esc_html_e('Syncing...', 'alloia-woocommerce'); ?>');
+        $status.html('<span style="color: #666;"><?php esc_html_e('Starting sync...', 'alloia-woocommerce'); ?></span>');
         
         $.ajax({
             url: '<?php echo esc_url(admin_url("admin-ajax.php")); ?>',
@@ -490,7 +490,7 @@ jQuery(document).ready(function($) {
                 } else {
                     // Build error message
                     var errorHtml = '<div style="background: #fff8e5; border: 1px solid #dc3232; border-radius: 4px; padding: 15px; margin-top: 10px;">';
-                    errorHtml += '<strong style="color: #dc3232;">✗ ' + (response.data.message || '<?php esc_html_e('Sync failed', 'geo-ia-optimisation-alloia'); ?>') + '</strong><br>';
+                    errorHtml += '<strong style="color: #dc3232;">✗ ' + (response.data.message || '<?php esc_html_e('Sync failed', 'alloia-woocommerce'); ?>') + '</strong><br>';
                     
                     // Debug sections removed for production - see git history if needed
                     

@@ -104,9 +104,9 @@ class AlloIA_Admin {
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('alloia_kg_nonce'),
                 'strings' => array(
-                    'export_started' => __('Export started successfully!', 'geo-ia-optimisation-alloia'),
-                    'export_failed' => __('Export failed. Please try again.', 'geo-ia-optimisation-alloia'),
-                    'batch_size_updated' => __('Batch size updated successfully!', 'geo-ia-optimisation-alloia')
+                    'export_started' => __('Export started successfully!', 'alloia-woocommerce'),
+                    'export_failed' => __('Export failed. Please try again.', 'alloia-woocommerce'),
+                    'batch_size_updated' => __('Batch size updated successfully!', 'alloia-woocommerce')
                 )
             ));
         }
@@ -142,7 +142,7 @@ class AlloIA_Admin {
      */
     public function render_settings_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'geo-ia-optimisation-alloia'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'alloia-woocommerce'));
         }
         
         // Process form submissions
@@ -917,7 +917,7 @@ class AlloIA_Admin {
      */
     public function render_knowledge_graph_page() {
         if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'geo-ia-optimisation-alloia'));
+            wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'alloia-woocommerce'));
         }
         
         // Check if API client is available

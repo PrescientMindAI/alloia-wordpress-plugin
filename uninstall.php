@@ -149,7 +149,7 @@ if (defined('ABSPATH') && is_readable(ABSPATH)) {
                 // Check if the file contains our plugin's signature before removing
                 $content = @file_get_contents($file);
                 if ($content !== false && (strpos($content, 'AlloIA') !== false || strpos($content, 'alloia') !== false)) {
-                    @unlink($file);
+                    wp_delete_file($file);
                 }
             }
         } catch (Exception $e) {
