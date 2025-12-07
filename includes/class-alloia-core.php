@@ -77,6 +77,25 @@ class AlloIA_Core {
 
     // Main init logic (admin notices, etc.)
     public function init() {
+        // Clean up old static llms.txt file (plugin serves dynamically)
+        // This runs on every page load to ensure external tools don't recreate it
+        $static_llms_txt = ABSPATH . 'llms.txt';
+        if (file_exists($static_llms_txt)) {
+            @unlink($static_llms_txt);
+        }
+        
+        // Check if we need to flush rewrite rules (version update)
+        $installed_version = get_option('alloia_version', '0');
+        if (version_compare($installed_version, ALLOIA_VERSION, '<')) {
+            // Version updated - flush rewrite rules
+            flush_rewrite_rules();
+            update_option('alloia_version', ALLOIA_VERSION);
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("AlloIA Plugin: Updated to version " . ALLOIA_VERSION . ", flushed rewrite rules");
+            }
+        }
+        
         if (is_admin() && get_option('alloia_llms_txt_flush_notice')) {
             add_action('admin_notices', array($this, 'llms_txt_flush_notice'));
         }
@@ -105,7 +124,7 @@ class AlloIA_Core {
     public function serve_llms_txt() {
         if (get_query_var('llms_txt') == 1) {
             header('Content-Type: text/plain; charset=utf-8');
-            echo esc_html($this->generate_llms_txt());
+            echo $this->generate_llms_txt(); // Plain text output, no escaping needed
             exit;
         }
     }
@@ -119,40 +138,44 @@ class AlloIA_Core {
         }
     }
 
-    // Generate llms.txt content using AlloIA.io API
+    // Generate llms.txt content pointing to AlloIA Knowledge Graph
     private function generate_llms_txt() {
+        $site_name = get_bloginfo('name');
         $site_url = home_url('/');
+        $site_description = get_bloginfo('description');
         
-        // Use AlloIA.io API to generate llms.txt
-        $api_url = 'https://alloia.io/api/tools/llms-txt?url=' . urlencode($site_url);
+        // Get client ID from API validation (if available)
+        $api_key = get_option('alloia_api_key_encrypted', get_option('alloia_api_key', ''));
+        $client_id = get_option('alloia_client_id', '');
         
-        // Make API request
-        $response = wp_remote_get($api_url, array(
-            'timeout' => 15, // Shorter timeout for dynamic serving
-            'user-agent' => 'AlloIA-WooCommerce-Plugin/' . ALLOIA_VERSION,
-            'headers' => array(
-                'Accept' => 'text/plain',
-            ),
-        ));
+        // Build llms.txt content
+        $output = "# {$site_name}\n\n";
+        $output .= "> {$site_description}\n\n";
+        $output .= "This site uses AlloIA for AI-powered commerce optimization.\n\n";
         
-        // Check for errors
-        if (is_wp_error($response)) {
-            return "# " . get_bloginfo('name') . "\n\n> " . get_bloginfo('description') . "\n\nThis site uses the AlloIA plugin for AI optimization.\n\n## Resources\n\n- [AlloIA Plugin Documentation](https://alloia.ai)\n- [WooCommerce](https://woocommerce.com)\n";
+        // If client has API key and products synced, point to AlloIA Knowledge Graph
+        if (!empty($api_key) && !empty($client_id)) {
+            $output .= "## AlloIA Knowledge Graph\n\n";
+            $output .= "Products from this store are available in the AlloIA Knowledge Graph:\n\n";
+            $output .= "- Product Catalog: https://www.alloia.io/api/v1/products?clientId={$client_id}\n";
+            $output .= "- Knowledge API: https://www.alloia.io/api/v1/knowledge/client/{$client_id}\n\n";
         }
         
-        $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code !== 200) {
-            return "# " . get_bloginfo('name') . "\n\n> " . get_bloginfo('description') . "\n\nThis site uses the AlloIA plugin for AI optimization.\n\n## Resources\n\n- [AlloIA Plugin Documentation](https://alloia.ai)\n- [WooCommerce](https://woocommerce.com)\n";
+        // Add store information
+        $output .= "## Store Information\n\n";
+        $output .= "- Website: {$site_url}\n";
+        
+        // Add sitemap if available
+        $sitemap_url = home_url('/sitemap.xml');
+        if ($this->url_exists($sitemap_url)) {
+            $output .= "- Sitemap: {$sitemap_url}\n";
         }
         
-        $llms_content = wp_remote_retrieve_body($response);
+        $output .= "\n## Resources\n\n";
+        $output .= "- [AlloIA Platform](https://alloia.io)\n";
+        $output .= "- [Plugin Documentation](https://github.com/PrescientMindAI/alloia-wordpress-plugin)\n";
         
-        // Validate content
-        if (empty($llms_content) || strlen($llms_content) < 50) {
-            return "# " . get_bloginfo('name') . "\n\n> " . get_bloginfo('description') . "\n\nThis site uses the AlloIA plugin for AI optimization.\n\n## Resources\n\n- [AlloIA Plugin Documentation](https://alloia.ai)\n- [WooCommerce](https://woocommerce.com)\n";
-        }
-        
-        return $llms_content;
+        return $output;
     }
 
     // Generate robots.txt content

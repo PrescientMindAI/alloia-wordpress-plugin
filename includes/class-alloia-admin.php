@@ -565,6 +565,10 @@ class AlloIA_Admin {
                             // Store client information
                             if (isset($validation_result['client'])) {
                                 update_option('alloia_client_info', $validation_result['client']);
+                                // Store client_id separately for llms.txt generation
+                                if (isset($validation_result['client']['id'])) {
+                                    update_option('alloia_client_id', $validation_result['client']['id']);
+                                }
                             }
                             
                             add_action('admin_notices', function() {
@@ -651,6 +655,10 @@ class AlloIA_Admin {
                                 // Store updated client information
                                 if (isset($validation_result['client'])) {
                                     update_option('alloia_client_info', $validation_result['client']);
+                                    // Store client_id separately for llms.txt generation
+                                    if (isset($validation_result['client']['id'])) {
+                                        update_option('alloia_client_id', $validation_result['client']['id']);
+                                    }
                                 }
                                 
                                 add_action('admin_notices', function() {
@@ -1655,6 +1663,11 @@ class AlloIA_Admin {
                     'debug' => $debug_info
                 ));
                 return;
+            }
+            
+            // Save client_id for llms.txt generation
+            if (isset($domain_validation['client_id'])) {
+                update_option('alloia_client_id', $domain_validation['client_id']);
             }
         } catch (Exception $e) {
             $debug_info[] = '✗ Exception during domain validation: ' . $e->getMessage();

@@ -52,7 +52,13 @@ if (!defined('ABSPATH')) {
             </div>
         </div>
 
-        <!-- generic llms.txt generation (before enabling AlloIA OSS) -->
+        <!-- TEMPORARILY DISABLED: llms.txt generation
+             Issue: Double slashes (//) in generated URLs
+             Status: Investigating root cause before enabling
+             Priority: Low (AI Sitemap feature is higher priority)
+             TODO: Debug and re-enable after AI Sitemap implementation
+        -->
+        <?php /* 
         <div class="alloia-card alloia-setting-group">
             <div class="alloia-toggle">
                 <div class="alloia-setting-info">
@@ -69,6 +75,7 @@ if (!defined('ABSPATH')) {
                 </div>
             </div>
         </div>
+        */ ?>
     </div>
 
     <!-- No global save button needed for one-time actions -->

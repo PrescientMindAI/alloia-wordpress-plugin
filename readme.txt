@@ -1,48 +1,50 @@
-=== GEO AI optimisation par AlloIA ===
+=== AlloIA for WooCommerce - AI-Powered Commerce ===
 Contributors: alloia, prescientmind
-Tags: geo, ai-optimization, ai-permissions, alloia, woocommerce
-Requires at least: 5.0
-Tested up to: 6.8
+Tags: ai, woocommerce, seo, robots-txt, ai-optimization
+Requires at least: 5.8
+Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-GEO AI optimisation pour WooCommerce. Gérez permissions IA, optimisez pour moteurs de recherche IA et analytics avancés par AlloIA.
+Transform your WooCommerce store for the AI era. AI-ready product catalog, smart robots.txt management, and seamless AlloIA platform integration.
 
 == Description ==
 
-**GEO AI optimisation par AlloIA** aide les boutiques e-commerce à optimiser leur contenu pour les moteurs de recherche IA et les systèmes de recommandation. Le plugin fournit des outils d'optimisation gratuits, l'accès aux outils d'analyse AlloIA, et des services premium de Knowledge Graph IA.
+**AlloIA for WooCommerce** helps e-commerce stores optimize their content for AI search engines and recommendation systems. The plugin provides free optimization tools and seamless integration with the AlloIA AI Commerce platform.
 
 = 🆓 Free Features =
 
-* **GEO AI Permissions** - Gérez les permissions des bots IA avec compatibilité automatique pour Yoast SEO, RankMath et autres plugins SEO
-* **Génération LLMS.txt** - Créez des résumés de contenu optimisés IA avec l'API AlloIA
-* **Permissions d'entraînement IA** - Contrôlez quels modèles IA peuvent s'entraîner sur votre contenu
-* **Score GEO AI** - Évaluez l'optimisation de votre site pour la découverte IA
+* **AI Readiness Analysis** - Get your AI optimization score and recommendations
+* **Smart robots.txt Generation** - Manage AI bot permissions with one click
+* **AI Training Control** - Choose whether AI models can train on your content
+* **SEO Plugin Compatible** - Works with Yoast SEO, RankMath, and others
 
-= ⭐ Pro Features =
+= ⭐ AI Commerce Platform =
 
-* **Knowledge Graph IA optimisé** - Intégrez votre catalogue WooCommerce avec le système de découverte IA d'AlloIA pour une visibilité améliorée dans les résultats de recherche IA
-* **Support prioritaire** - Service client amélioré et assistance technique
+* **Knowledge Graph Integration** - Sync your product catalog to the AlloIA Knowledge Graph for enhanced AI search visibility
+* **Product Synchronization** - Automatic product export and updates
+* **Real-time Analytics** - Track AI bot visits and engagement
+* **Priority Support** - Dedicated technical assistance
 
 = How It Works =
 
-1. **Install & Activate** - Works immediately with free features
-2. **Configure AI Permissions** - Set which AI bots can access your content
-3. **Optimize Content** - Generate AI-friendly robots.txt and comprehensive LLMS.txt files using AlloIA.io API
-4. **Upgrade to Pro** - Subscribe for advanced analytics and Knowledge Graph integration
-5. **Monitor Performance** - Track AI bot visits and optimization opportunities
+1. **Install & Activate** - Free features work immediately
+2. **Configure AI Permissions** - Set which AI bots can access your content  
+3. **Get Your API Key** - Sign up at [alloia.ai](https://alloia.ai) for AI Commerce features
+4. **Sync Your Products** - Export your catalog to the AlloIA Knowledge Graph with one click
+5. **Monitor Performance** - Track how AI systems interact with your store
 
 = AI Bot Compatibility =
 
 The plugin optimizes for major AI systems including:
-* ChatGPT (OpenAI)
-* Claude (Anthropic)
-* Perplexity AI
-* Google Bard
-* Bing AI
-* And many more
+* ChatGPT (OpenAI) - Search and browsing
+* Claude (Anthropic) - Web interface
+* Perplexity AI - AI search engine
+* Google Gemini - AI assistant
+* Bing Copilot - Microsoft AI
+* And 20+ more AI crawlers
 
 = SEO Plugin Compatibility =
 
@@ -51,21 +53,43 @@ Seamlessly integrates with:
 * RankMath
 * All in One SEO
 * SEOPress
-* Other major SEO plugins
+* And more
 
-= Perfect For =
+= Use Cases =
 
-* WooCommerce store owners
-* E-commerce businesses
-* Digital marketers
-* SEO professionals
-* Anyone preparing for the AI-powered future of search
+* **E-commerce SEO** - Optimize for AI-powered search engines
+* **Product Discovery** - Make your products findable by AI shopping assistants
+* **Content Protection** - Control which AI models can train on your content
+* **Analytics** - Understand how AI bots interact with your store
+* **Future-Proofing** - Prepare for the AI-driven commerce era
+
+= Technical Requirements =
+
+* WordPress 5.8 or higher
+* WooCommerce 5.0 or higher
+* PHP 7.4 or higher
+* HTTPS recommended for API communication
+
+= Privacy & Data =
+
+* Free features run entirely on your server
+* AI Commerce features send product data to AlloIA platform via secure API
+* No personal customer data is transmitted
+* GDPR and CCPA compliant
+* Full data control and deletion options
+
+= Support & Documentation =
+
+* [Plugin Documentation](https://github.com/PrescientMindAI/alloia-wordpress-plugin)
+* [AlloIA Platform](https://alloia.ai)
+* [API Documentation](https://www.alloia.io/api/docs)
+* [Support Forum](https://alloia.ai/support)
 
 == Installation ==
 
 = Automatic Installation =
 
-1. Go to your WordPress admin area
+1. Log in to your WordPress admin panel
 2. Navigate to Plugins > Add New
 3. Search for "AlloIA for WooCommerce"
 4. Click "Install Now" and then "Activate"
@@ -73,104 +97,122 @@ Seamlessly integrates with:
 = Manual Installation =
 
 1. Download the plugin ZIP file
-2. Go to Plugins > Add New > Upload Plugin
-3. Choose the ZIP file and click "Install Now"
-4. Activate the plugin
+2. Log in to your WordPress admin panel
+3. Navigate to Plugins > Add New > Upload Plugin
+4. Choose the ZIP file and click "Install Now"
+5. Activate the plugin
 
-= After Installation =
+= After Activation =
 
-1. Go to **AlloIA** in your WordPress admin menu
-2. Configure your AI bot permissions in the Free Features tab
-3. For Pro features, subscribe and enter your API key in the Pro Features tab
+1. Go to **AlloIA > Free Tools** to configure AI bot permissions
+2. Click "Generate robots.txt" to optimize for AI crawlers
+3. (Optional) Visit [alloia.ai](https://alloia.ai) to get your API key
+4. Go to **AlloIA > AI Commerce Platform** and enter your API key
+5. Click "Sync Products" to export your catalog to the Knowledge Graph
 
 == Frequently Asked Questions ==
 
-= Do I need a subscription to use this plugin? =
+= Is this plugin free? =
 
-No! The plugin includes valuable free features like robots.txt optimization, LLMS.txt generation, and AI training permissions. Pro features require a subscription for advanced analytics and Knowledge Graph integration.
+Yes! Core features (robots.txt management, AI permissions) are completely free. The AI Commerce Platform features (Knowledge Graph integration, analytics) require an AlloIA account.
 
-= Will this affect my site's SEO? =
+= Do I need an AlloIA account? =
 
-The plugin enhances your SEO by optimizing for AI-powered search engines while maintaining compatibility with traditional search engines. It works alongside your existing SEO plugins.
+No, the free features work without an account. However, to sync your products to the AlloIA Knowledge Graph and access analytics, you'll need to sign up at [alloia.ai](https://alloia.ai).
 
-= Which AI bots does this optimize for? =
+= What is the AlloIA Knowledge Graph? =
 
-The plugin optimizes for all major AI systems including ChatGPT, Claude, Perplexity AI, Google Bard, Bing AI, and many others. The robots.txt optimization is future-proof for new AI bots.
+The AlloIA Knowledge Graph is an AI-ready product database that makes your products discoverable by AI shopping assistants, search engines, and recommendation systems.
 
-= Is this compatible with my SEO plugin? =
+= Will this affect my existing SEO? =
 
-Yes! AlloIA is designed to work seamlessly with Yoast SEO, RankMath, All in One SEO, SEOPress, and other major SEO plugins.
+No! The plugin is designed to complement your existing SEO setup. It works alongside Yoast SEO, RankMath, and other SEO plugins without conflicts.
 
-= How does the Knowledge Graph integration work? =
+= What data is sent to AlloIA? =
 
-With a Pro subscription, the plugin exports your WooCommerce products to AlloIA's Knowledge Graph, making them discoverable by AI systems for product recommendations and comparisons.
+Only product information (name, description, price, images, SKU) is sent when you sync products. No customer data, orders, or personal information is transmitted.
 
-= What is LLMS.txt? =
+= Can I delete my data from AlloIA? =
 
-LLMS.txt is a machine-readable file that provides AI systems with structured information about your site's content, similar to how robots.txt guides search engine crawlers.
+Yes! You can delete all your data from the AlloIA platform at any time through your account settings or by contacting support.
 
-= Do I need technical knowledge to use this? =
+= Does this work with variable products? =
 
-No! The plugin works out of the box with sensible defaults. Advanced users can customize settings, but it's designed to be user-friendly for everyone.
+Yes! The plugin syncs all product types including simple, variable, grouped, and virtual products.
 
-= How do I get Pro features? =
+= How often are products synced? =
 
-Click the subscription links in the Pro Features tab to subscribe on alloia.ai. After payment, you'll receive an API key to enter in the plugin to activate Pro features.
+Products are synced when you click "Sync Products" or automatically when products are created/updated (if auto-sync is enabled in settings).
+
+= Is this GDPR compliant? =
+
+Yes! The plugin is designed with privacy in mind and complies with GDPR, CCPA, and other data protection regulations.
+
+= What happens if I deactivate the plugin? =
+
+Free features will stop working immediately. Your products will remain in the AlloIA Knowledge Graph until you manually delete them from your AlloIA account.
+
+= Can I use this on multiple stores? =
+
+Yes! Each store needs its own API key. Contact sales for multi-store pricing.
 
 == Screenshots ==
 
-1. **Free Features** - The free plugin features enable out-of-the-box visibility for AI tools to improve how they show up in chatbots and answer engines. Includes tools to analyze blocked AI bots in robots.txt, rewrite robots.txt to enable all AI bots, generate generic LLMS.txt, and access to AlloIA's free optimization tools.
-2. **AI Optimized Knowledge Graph** - Optimize your brand visibility in the AI era with a complete approach to ensure your presence in the AI recommendation ecosystem without impacting your site or SEO. Features include creating an AI-optimized subdomain web service, generating structured pages for AI engines, and integration without impacting main SEO.
-3. **Automatic AI Optimization (Coming Soon)** - An automatic approach to continuously optimize your AI presence, leverage your data, and maximize your results with minimal effort. This feature will include 24/7 continuous AI presence optimization, automatic adaptation to new AI engines, and fine-tuning interface via chat.
+1. Free Tools - Manage AI bot permissions and generate robots.txt
+2. AI Commerce Platform - Product synchronization dashboard
+3. API Key Management - Connect to AlloIA platform
+4. Product Sync Status - Real-time sync monitoring
 
 == Changelog ==
 
-= 1.2.0 =
-* **WordPress.org Release**: Streamlined version optimized for WordPress.org directory
-* **Security Enhanced**: All outputs properly escaped, inputs validated and sanitized
-* **WordPress Standards**: Replaced deprecated functions (parse_url, rand, date) with WordPress equivalents
-* **Code Quality**: Removed debug code, improved error handling, enhanced input validation
-* **New Free Tools**: Added PERSPECTIVE (AI compatibility analysis), ACTIONS (GEO questionnaire), and PULSE (competitive surveillance)
-* **Simplified Interface**: Focused Pro features on AI-Optimized Knowledge Graph only
-* **Updated Links**: All links now point to alloia.ai with direct support contact
-* **Enhanced UX**: Improved free features tab with modern responsive design
+= 1.7.1 - 2025-12-06 =
+* **Major Cleanup:** Removed 2,379 lines of legacy code
+* **Added:** GitHub auto-update system for seamless updates
+* **Added:** Auto-delete static llms.txt file (enables dynamic serving)
+* **Added:** Auto-flush rewrite rules on version update
+* **Fixed:** Product sync now correctly uses SKU as primary identifier
+* **Fixed:** API validation and domain checks streamlined
+* **Improved:** Plugin now serves llms.txt dynamically
+* **Removed:** Legacy subscription UI (moved to alloia.ai portal)
+* **Removed:** Debug logging from production UI
+* **Performance:** Faster, cleaner codebase (-21% lines)
 
-= 1.0.1 =
-* **Security fixes**: Fixed critical XSS and SQL injection vulnerabilities
-* **CSRF protection**: Added nonce verification for all AJAX endpoints
-* **File security**: Enhanced validation for file operations
-* **Error handling**: Improved error management throughout codebase
-* **Performance**: Database query optimization with pagination support
-* **Code quality**: Enhanced input validation and sanitization
-* **Bug fix**: Removed duplicate class file causing fatal errors
-* **Debug**: All debug logging wrapped in WP_DEBUG checks
+= 1.7.0 - 2025-12-05 =
+* **Emergency Hotfix:** Domain validation bypass for immediate client use
+* **Fixed:** Product sync for WooCommerce and Shopify
+* **Fixed:** API authentication and error handling
+* **Fixed:** Product upsert logic (SKU-first identification)
+* **Improved:** Error logging and debugging capabilities
 
-= 1.0.0 =
-* Initial release
-* Free features: robots.txt optimization, LLMS.txt generation, AI training permissions
-* Pro features: Knowledge Graph integration, advanced analytics
-* SEO plugin compatibility (Yoast, RankMath, etc.)
-* WordPress 6.4 compatibility
-* WooCommerce 8.0+ compatibility
+= 1.2.0 - 2024-09-26 =
+* Initial public release
+* Free tools: robots.txt generation, AI permissions
+* AI Commerce platform integration
+* Product synchronization to Knowledge Graph
+* Real-time analytics dashboard
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-Initial release of AlloIA for WooCommerce. Transform your store for the AI era with free optimization tools and premium analytics.
+= 1.7.1 =
+Major cleanup and improvements! Auto-update system added. Please re-save your API key after updating to ensure full functionality.
 
-== Privacy Policy ==
+= 1.7.0 =
+Emergency hotfix for product sync. Update recommended for all users.
 
-This plugin:
-* Stores configuration data locally in your WordPress database
-* For Pro users: sends product data to AlloIA's secure servers for Knowledge Graph integration
-* Does not collect personal data from your site visitors
-* Only processes data you explicitly configure for AI optimization
+== Third-Party Services ==
 
-For more details, see our [Privacy Policy](https://alloia.ai/privacy).
+This plugin connects to the following third-party services:
 
-== Support ==
+= AlloIA API (alloia.io) =
+* Used for: Product synchronization, API key validation, analytics
+* Terms of Service: https://alloia.ai/terms
+* Privacy Policy: https://alloia.ai/privacy
+* Data sent: Product information (name, description, price, SKU, images)
+* When: Only when you explicitly sync products
 
-* Free support via WordPress.org forums
-* Pro users get priority support at [support.alloia.ai](https://support.alloia.ai)
-* Documentation: [docs.alloia.ai](https://docs.alloia.ai)
-* Community: [community.alloia.ai](https://community.alloia.ai)
+= GitHub API (github.com) =
+* Used for: Plugin auto-updates
+* Only when: WordPress checks for plugin updates
+* No personal data transmitted
+
+No third-party services are contacted without your explicit action (clicking "Sync Products" or WordPress auto-update checks).

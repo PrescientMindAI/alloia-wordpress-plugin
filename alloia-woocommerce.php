@@ -3,7 +3,7 @@
  * Plugin Name: GEO AI optimisation par AlloIA
  * Plugin URI: https://alloia.ai/plugins/woocommerce
  * Description: GEO AI optimisation pour WooCommerce. Gérez les permissions IA, optimisez pour les moteurs de recherche IA et débloquez des analytics avancés avec AlloIA.
- * Version: 1.2.0
+ * Version: 1.7.1
  * Author: AlloIA Team
  * Author URI: https://alloia.ai
  * License: GPL v2 or later
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
 
 
 // Define plugin constants
-define('ALLOIA_VERSION', '1.2.0');
+define('ALLOIA_VERSION', '1.7.1');
 define('ALLOIA_PLUGIN_FILE', __FILE__);
 define('ALLOIA_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('ALLOIA_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -256,6 +256,14 @@ class AlloIA_WooCommerce {
             // Admin interface (only in admin)
             if (is_admin()) {
                 require_once ALLOIA_PLUGIN_PATH . 'includes/class-alloia-admin.php';
+                
+                // GitHub auto-update system
+                require_once ALLOIA_PLUGIN_PATH . 'includes/class-alloia-updater.php';
+                new AlloIA_Plugin_Updater(
+                    plugin_basename(__FILE__), // 'alloia-woocommerce/alloia-woocommerce.php'
+                    'PrescientMindAI/alloia-wordpress-plugin', // GitHub repo
+                    ALLOIA_VERSION // Current version
+                );
             }
             
             // Website API functionality is now integrated into the main API class
@@ -476,7 +484,22 @@ function alloia_activate() {
         // Create necessary database tables if needed
         alloia_create_tables();
         
-        // Flush rewrite rules
+        // Delete old static files (plugin now serves these dynamically)
+        $abspath = rtrim(ABSPATH, '/');
+        $old_llms_txt = $abspath . '/llms.txt';
+        $old_robots_txt = $abspath . '/robots.txt';
+        
+        if (file_exists($old_llms_txt)) {
+            @unlink($old_llms_txt);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('AlloIA Plugin: Deleted old static llms.txt file');
+            }
+        }
+        
+        // Note: We don't delete robots.txt automatically as it may be user-customized
+        // Users should use the "Generate robots.txt" button instead
+        
+        // Flush rewrite rules to activate dynamic serving
         flush_rewrite_rules();
         
         // Set activation flag

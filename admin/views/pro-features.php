@@ -475,28 +475,7 @@ jQuery(document).ready(function($) {
                         statusHtml += '<strong>Details:</strong> ' + response.data.detailed_message + '<br>';
                     }
                     
-                    if (response.data.debug) {
-                        statusHtml += '<br><strong>Debug Log:</strong><br>';
-                        statusHtml += '<pre style="background: #fff; padding: 10px; overflow: auto; max-height: 300px; font-size: 11px;">';
-                        response.data.debug.forEach(function(line) {
-                            statusHtml += line + '\n';
-                        });
-                        statusHtml += '</pre>';
-                    }
-                    
-                    if (response.data.full_result) {
-                        statusHtml += '<br><strong>Full Result:</strong><br>';
-                        statusHtml += '<pre style="background: #fff; padding: 10px; overflow: auto; max-height: 200px; font-size: 11px;">';
-                        statusHtml += JSON.stringify(response.data.full_result, null, 2);
-                        statusHtml += '</pre>';
-                    }
-                    
-                    if (response.data.updated_stats) {
-                        statusHtml += '<br><strong>📊 Updated Statistics:</strong><br>';
-                        statusHtml += '<pre style="background: #f0fff0; padding: 10px; overflow: auto; font-size: 11px; border: 2px solid #46b450;">';
-                        statusHtml += JSON.stringify(response.data.updated_stats, null, 2);
-                        statusHtml += '</pre>';
-                    }
+                    // Debug sections removed for production - see git history if needed
                     
                     statusHtml += '</div>';
                     $status.html(statusHtml);
@@ -513,14 +492,7 @@ jQuery(document).ready(function($) {
                     var errorHtml = '<div style="background: #fff8e5; border: 1px solid #dc3232; border-radius: 4px; padding: 15px; margin-top: 10px;">';
                     errorHtml += '<strong style="color: #dc3232;">✗ ' + (response.data.message || '<?php esc_html_e('Sync failed', 'geo-ia-optimisation-alloia'); ?>') + '</strong><br>';
                     
-                    if (response.data.debug) {
-                        errorHtml += '<br><strong>Debug Log:</strong><br>';
-                        errorHtml += '<pre style="background: #fff; padding: 10px; overflow: auto; max-height: 300px; font-size: 11px;">';
-                        response.data.debug.forEach(function(line) {
-                            errorHtml += line + '\n';
-                        });
-                        errorHtml += '</pre>';
-                    }
+                    // Debug sections removed for production - see git history if needed
                     
                     if (response.data.validation) {
                         errorHtml += '<br><strong>Validation:</strong><br>';
