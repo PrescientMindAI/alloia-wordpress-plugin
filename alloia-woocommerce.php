@@ -25,6 +25,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Suppress PHP notices during plugin initialization to prevent header issues
+if (!defined('WP_DEBUG') || !WP_DEBUG) {
+    error_reporting(E_ERROR | E_WARNING | E_PARSE);
+}
 
 // Define plugin constants
 define('ALLOIA_VERSION', '1.7.4');

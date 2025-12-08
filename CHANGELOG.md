@@ -5,6 +5,33 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.4] - 2025-12-08
+
+### Removed
+- **Deprecated llms.txt Feature**: Completely removed deprecated llms.txt functionality
+  - Removed rewrite rules and handlers from core
+  - Removed UI references from admin views
+  - Removed generation functions and API calls
+  - Removed cleanup from uninstall script
+  - Resolves issues with llms.txt generation errors
+
+### Improved
+- **Code Cleanup**: Removed unused code and reduced plugin complexity
+- **Performance**: Eliminated unnecessary API calls and file operations
+
+## [1.7.3] - 2025-12-08
+
+### Fixed
+- **Image Limit Error**: Fixed "Too many images (max 10)" validation error for variable products
+  - `get_product_images()` now limits images to maximum of 10 (1 main + up to 9 gallery)
+  - Prioritizes main product image over gallery images
+  - Adds debug logging when image count exceeds limit
+  - Resolves sync issues with products using "Additional Variation Images Gallery" plugin
+
+### Improved
+- **Variable Product Support**: Better handling of WooCommerce variable products with multiple variation images
+- **Debug Logging**: Added informative logs for image collection process
+
 ## [1.0.1] - 2024-12-19
 
 ### Fixed
