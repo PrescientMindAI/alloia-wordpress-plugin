@@ -25,9 +25,6 @@ class AlloIA_Core {
         // Cron task for audits
         add_action('alloia_hourly_audit', array($this, 'run_hourly_audit'));
         
-        // llms.txt endpoint
-        add_action('init', array($this, 'add_llms_txt_rewrite'));
-        add_action('template_redirect', array($this, 'serve_llms_txt'));
         
         // Robots.txt hooks - comprehensive approach
         add_action('init', array($this, 'add_robots_txt_rewrite'));
@@ -45,11 +42,9 @@ class AlloIA_Core {
     // On plugin activation: flush rewrite rules and show admin notice
     public function activate() {
         // Add rewrite rules
-        $this->add_llms_txt_rewrite();
         $this->add_robots_txt_rewrite();
         // Flush rewrite rules
         flush_rewrite_rules();
-        add_option('alloia_llms_txt_flush_notice', true);
 
         // Schedule hourly audit if not scheduled
         if (!wp_next_scheduled('alloia_hourly_audit')) {
@@ -77,12 +72,6 @@ class AlloIA_Core {
 
     // Main init logic (admin notices, etc.)
     public function init() {
-        // Clean up old static llms.txt file (plugin serves dynamically)
-        // This runs on every page load to ensure external tools don't recreate it
-        $static_llms_txt = ABSPATH . 'llms.txt';
-        if (file_exists($static_llms_txt)) {
-            wp_delete_file($static_llms_txt);
-        }
         
         // Check if we need to flush rewrite rules (version update)
         $installed_version = get_option('alloia_version', '0');
@@ -96,22 +85,10 @@ class AlloIA_Core {
             }
         }
         
-        if (is_admin() && get_option('alloia_llms_txt_flush_notice')) {
-            add_action('admin_notices', array($this, 'llms_txt_flush_notice'));
-        }
     }
 
     // Show admin notice to flush permalinks
-    public function llms_txt_flush_notice() {
-        echo '<div class="notice notice-success is-dismissible"><p><strong>AlloIA for WooCommerce:</strong> Please visit <a href="/wp-admin/options-permalink.php">Settings > Permalinks</a> and click "Save Changes" to enable the /llms.txt endpoint.</p></div>';
-        delete_option('alloia_llms_txt_flush_notice');
-    }
 
-    // Add rewrite rule for /llms.txt
-    public function add_llms_txt_rewrite() {
-        add_rewrite_rule('^llms\.txt$', 'index.php?llms_txt=1', 'top');
-        add_rewrite_tag('%llms_txt%', '1');
-    }
 
     // Add rewrite rule for /robots.txt (ensure WordPress handles it)
     public function add_robots_txt_rewrite() {
@@ -120,14 +97,6 @@ class AlloIA_Core {
         add_rewrite_tag('%robots%', '1');
     }
 
-    // Serve llms.txt content dynamically
-    public function serve_llms_txt() {
-        if (get_query_var('llms_txt') == 1) {
-            header('Content-Type: text/plain; charset=utf-8');
-            echo $this->generate_llms_txt(); // Plain text output, no escaping needed
-            exit;
-        }
-    }
 
     // Serve robots.txt content dynamically
     public function serve_robots_txt() {
@@ -136,46 +105,6 @@ class AlloIA_Core {
             echo esc_html($this->generate_robots_txt());
             exit;
         }
-    }
-
-    // Generate llms.txt content pointing to AlloIA Knowledge Graph
-    private function generate_llms_txt() {
-        $site_name = get_bloginfo('name');
-        $site_url = home_url('/');
-        $site_description = get_bloginfo('description');
-        
-        // Get client ID from API validation (if available)
-        $api_key = get_option('alloia_api_key_encrypted', get_option('alloia_api_key', ''));
-        $client_id = get_option('alloia_client_id', '');
-        
-        // Build llms.txt content
-        $output = "# {$site_name}\n\n";
-        $output .= "> {$site_description}\n\n";
-        $output .= "This site uses AlloIA for AI-powered commerce optimization.\n\n";
-        
-        // If client has API key and products synced, point to AlloIA Knowledge Graph
-        if (!empty($api_key) && !empty($client_id)) {
-            $output .= "## AlloIA Knowledge Graph\n\n";
-            $output .= "Products from this store are available in the AlloIA Knowledge Graph:\n\n";
-            $output .= "- Product Catalog: https://www.alloia.io/api/v1/products?clientId={$client_id}\n";
-            $output .= "- Knowledge API: https://www.alloia.io/api/v1/knowledge/client/{$client_id}\n\n";
-        }
-        
-        // Add store information
-        $output .= "## Store Information\n\n";
-        $output .= "- Website: {$site_url}\n";
-        
-        // Add sitemap if available
-        $sitemap_url = home_url('/sitemap.xml');
-        if ($this->url_exists($sitemap_url)) {
-            $output .= "- Sitemap: {$sitemap_url}\n";
-        }
-        
-        $output .= "\n## Resources\n\n";
-        $output .= "- [AlloIA Platform](https://alloia.io)\n";
-        $output .= "- [Plugin Documentation](https://github.com/PrescientMindAI/alloia-wordpress-plugin)\n";
-        
-        return $output;
     }
 
     // Generate robots.txt content
@@ -269,7 +198,7 @@ class AlloIA_Core {
         $path = wp_parse_url($url, PHP_URL_PATH);
         if ($path) {
             $basename = basename($path);
-            if (in_array($basename, array('robots.txt', 'llms.txt'))) {
+            if (\$basename === 'robots.txt') {
                 return file_exists(ABSPATH . $basename);
             }
         }
@@ -814,7 +743,6 @@ class AlloIA_Core {
         $tests = array(
             'sitemap' => !empty($audit['sitemap_exists']),
             'robots' => !empty($audit['robots_exists']),
-            'llms' => !empty($audit['llms_exists']),
             'alloia_block' => !empty($audit['alloia_block_present']),
             // robots allows AI search/browsing bots
             'robots_ai_allow' => (isset($audit['search_bots_allowed'], $audit['search_bots_total']) && $audit['search_bots_total'] > 0) ? ($audit['search_bots_allowed'] === $audit['search_bots_total']) : false,
@@ -854,7 +782,6 @@ class AlloIA_Core {
         $home = home_url('/');
         $robots_url = home_url('/robots.txt');
         $sitemap_url = home_url('/sitemap.xml');
-        $llms_url = home_url('/llms.txt');
 
         $robots_resp = wp_remote_get($robots_url, array('timeout' => 10, 'redirection' => 5));
         $robots_body = (is_wp_error($robots_resp)) ? '' : wp_remote_retrieve_body($robots_resp);
@@ -862,9 +789,6 @@ class AlloIA_Core {
         $robots_ok_file = file_exists(ABSPATH . 'robots.txt');
         $robots_ok = $robots_ok_http || $robots_ok_file;
         $sitemap_ok = $this->url_exists($sitemap_url);
-        $llms_ok_http = $this->url_exists($llms_url);
-        $llms_ok_file = file_exists(ABSPATH . 'llms.txt');
-        $llms_ok = $llms_ok_http || $llms_ok_file;
 
         $alloia_block = false;
         if ($robots_body === '' && $robots_ok_file) {
@@ -909,8 +833,6 @@ class AlloIA_Core {
             'robots_exists' => $robots_ok,
             'sitemap_url' => $sitemap_url,
             'sitemap_exists' => $sitemap_ok,
-            'llms_url' => $llms_url,
-            'llms_exists' => $llms_ok,
             'alloia_block_present' => $alloia_block,
             'robots_sample' => substr($robots_body, 0, 1000),
             'training_bots_blocked' => $blocked,

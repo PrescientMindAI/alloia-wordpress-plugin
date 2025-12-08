@@ -41,7 +41,6 @@ $options_to_remove = array(
     'alloia_api_key',
     'alloia_api_key_encrypted',
     'alloia_subdomain',
-    'alloia_llms_txt_enabled',
     'alloia_ai_bot_tracking',
     'alloia_robots_txt_enabled',
     'alloia_advanced_analytics',
@@ -138,7 +137,6 @@ wp_clear_scheduled_hook('alloia_auto_sync_single_product');
 // Remove physical files created by the plugin (with better error handling)
 if (defined('ABSPATH') && is_readable(ABSPATH)) {
     $files_to_remove = array(
-        ABSPATH . 'llms.txt',
         // Note: We should NOT remove robots.txt as it may contain other important rules
         // ABSPATH . 'robots.txt' // Only if it was created by our plugin
     );

@@ -52,7 +52,6 @@ if (!defined('ABSPATH')) {
             </div>
         </div>
 
-        <!-- TEMPORARILY DISABLED: llms.txt generation
              Issue: Double slashes (//) in generated URLs
              Status: Investigating root cause before enabling
              Priority: Low (AI Sitemap feature is higher priority)
@@ -62,14 +61,8 @@ if (!defined('ABSPATH')) {
         <div class="alloia-card alloia-setting-group">
             <div class="alloia-toggle">
                 <div class="alloia-setting-info">
-                    <strong>Generate llms.txt</strong>
-                    <p>Generate a comprehensive <code>llms.txt</code> file using the <a href="https://alloia.io/api/tools/llms-txt" target="_blank">AlloIA.io API</a> for optimal AI model consumption. This creates a detailed, site-specific llms.txt file that helps AI systems better understand your content.</p>
                     <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
                         <form method="post" action="" style="display:inline;">
-                            <?php wp_nonce_field('generate_llms_txt_action', 'generate_llms_txt_nonce'); ?>
-                            <input type="hidden" name="generate_llms_txt" value="1" />
-                            <input type="submit" class="button button-primary" value="Generate llms.txt" />
-                            <a href="<?php echo esc_url(home_url('/llms.txt')); ?>" target="_blank" class="button">View llms.txt →</a>
                         </form>
                     </div>
                 </div>

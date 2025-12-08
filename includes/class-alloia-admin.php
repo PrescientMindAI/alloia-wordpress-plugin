@@ -204,7 +204,6 @@ class AlloIA_Admin {
         
         // Feature settings
         $is_enabled = true; // Deprecated master toggle removed from UI
-        $llms_txt_enabled = get_option('alloia_llms_txt_enabled', true);
         $ai_bot_tracking = get_option('alloia_ai_bot_tracking', true);
         $robots_txt_enabled = get_option('alloia_robots_txt_enabled', true);
         
@@ -338,7 +337,6 @@ class AlloIA_Admin {
             'conversion_change' => $conversion_change,
             'recommendations_served' => $recommendations_served,
             'is_enabled' => $is_enabled,
-            'llms_txt_enabled' => $llms_txt_enabled,
             'ai_bot_tracking' => $ai_bot_tracking,
             'robots_txt_enabled' => $robots_txt_enabled,
             'advanced_analytics' => $advanced_analytics,
@@ -502,13 +500,11 @@ class AlloIA_Admin {
         if (isset($_POST['submit_free']) && check_admin_referer('alloia_settings', 'alloia_nonce')) {
             if (current_user_can('manage_options')) {
                 // Update individual features
-                update_option('alloia_llms_txt_enabled', isset($_POST['llms_txt_enabled']) ? 1 : 0);
                 update_option('alloia_ai_bot_tracking', 0); // Pro-only
                 update_option('alloia_robots_txt_enabled', isset($_POST['robots_txt_enabled']) ? 1 : 0);
                 
                 // Update physical files if needed
                 $this->core->update_physical_robots_txt();
-                $this->generate_llms_txt();
                 
                 add_action('admin_notices', function() {
                     echo '<div class="notice notice-success is-dismissible"><p>Free features settings saved successfully!</p></div>';
@@ -565,7 +561,6 @@ class AlloIA_Admin {
                             // Store client information
                             if (isset($validation_result['client'])) {
                                 update_option('alloia_client_info', $validation_result['client']);
-                                // Store client_id separately for llms.txt generation
                                 if (isset($validation_result['client']['id'])) {
                                     update_option('alloia_client_id', $validation_result['client']['id']);
                                 }
@@ -655,7 +650,6 @@ class AlloIA_Admin {
                                 // Store updated client information
                                 if (isset($validation_result['client'])) {
                                     update_option('alloia_client_info', $validation_result['client']);
-                                    // Store client_id separately for llms.txt generation
                                     if (isset($validation_result['client']['id'])) {
                                         update_option('alloia_client_id', $validation_result['client']['id']);
                                     }
@@ -787,14 +781,10 @@ class AlloIA_Admin {
             }
         }
         
-        // Generate llms.txt
-        if (isset($_POST['generate_llms_txt']) && check_admin_referer('generate_llms_txt_action', 'generate_llms_txt_nonce')) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('AlloIA: llms.txt generation form submitted');
             }
             }
-            $this->generate_llms_txt();
         }
         
         // Handle redirect configuration
@@ -816,56 +806,21 @@ class AlloIA_Admin {
     }
     
     /**
-     * Generate llms.txt file using AlloIA.io API
-     */
-    private function generate_llms_txt() {
-        $site_url = home_url('/');
-        
-        // Use AlloIA.io API to generate llms.txt
-        $api_url = 'https://www.alloia.io/api/tools/llms-txt?url=' . urlencode($site_url);
-        
-        // Debug: Always log the API call
-        error_log('AlloIA: Making API call to: ' . $api_url);
-        error_log('AlloIA: Site URL: ' . $site_url);
-        
-        // Make API request
-        $response = wp_remote_get($api_url, array(
-            'timeout' => 30,
-            'user-agent' => 'AlloIA-WooCommerce-Plugin/' . ALLOIA_VERSION,
-            'headers' => array(
-                'Accept' => 'text/plain',
-            ),
-        ));
-        
-        // Check for errors
-        if (is_wp_error($response)) {
-            error_log('AlloIA: Failed to generate llms.txt via API: ' . $response->get_error_message());
-            add_action('admin_notices', function() {
-                echo '<div class="notice notice-error is-dismissible"><p><strong>Error:</strong> Failed to generate llms.txt via AlloIA.io API. Please try again later.</p></div>';
-            });
-            return;
-        }
-        
+     */        
         $response_code = wp_remote_retrieve_response_code($response);
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('AlloIA: API response code: ' . $response_code);
         }
         
         if ($response_code !== 200) {
-            error_log('AlloIA: API returned error code ' . $response_code . ' for llms.txt generation, generating basic content');
-            $llms_content = $this->generate_basic_llms_txt($site_url);
         } else {
-            $llms_content = wp_remote_retrieve_body($response);
         }
         
         // Debug: Log content length
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('AlloIA: API returned content length: ' . strlen($llms_content));
         }
         
         // Validate content
-        if (empty($llms_content) || strlen($llms_content) < 50) {
-            error_log('AlloIA: API returned invalid or empty llms.txt content (length: ' . strlen($llms_content) . ')');
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-error is-dismissible"><p><strong>Error:</strong> AlloIA.io API returned invalid content. Please try again later.</p></div>';
             });
@@ -873,10 +828,7 @@ class AlloIA_Admin {
         }
         
         // Save the generated content
-        $llms_path = wp_normalize_path(ABSPATH . 'llms.txt');
-        if (strpos($llms_path, wp_normalize_path(ABSPATH)) !== 0) {
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-error is-dismissible"><p><strong>Error:</strong> Invalid llms.txt path. File not created.</p></div>';
             });
             return;
         }
@@ -885,27 +837,21 @@ class AlloIA_Admin {
         global $wp_filesystem;
         if (!WP_Filesystem()) {
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-error is-dismissible"><p><strong>Error:</strong> Cannot initialize filesystem. Cannot create llms.txt file.</p></div>';
             });
             return;
         }
         
         if (!$wp_filesystem->is_writable(ABSPATH)) {
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-error is-dismissible"><p><strong>Error:</strong> WordPress root directory is not writable. Cannot create llms.txt file.</p></div>';
             });
             return;
         }
         
-        $result = @file_put_contents($llms_path, $llms_content);
         if ($result === false) {
-            error_log('AlloIA: Failed to write llms.txt file to ' . $llms_path);
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-error is-dismissible"><p><strong>Error:</strong> Failed to write llms.txt file. Please check file permissions.</p></div>';
             });
         } else {
             add_action('admin_notices', function() {
-                echo '<div class="notice notice-success is-dismissible"><p><strong>Success:</strong> llms.txt file has been generated successfully using AlloIA.io API!</p></div>';
             });
         }
     }
@@ -1665,7 +1611,6 @@ class AlloIA_Admin {
                 return;
             }
             
-            // Save client_id for llms.txt generation
             if (isset($domain_validation['client_id'])) {
                 update_option('alloia_client_id', $domain_validation['client_id']);
             }
@@ -2265,19 +2210,7 @@ class AlloIA_Admin {
     }
     
     /**
-     * Generate basic llms.txt content when API is unavailable
-     */
-    private function generate_basic_llms_txt($site_url) {
-        $site_name = get_bloginfo('name');
-        $site_description = get_bloginfo('description');
-        
-        $content = "# LLMs.txt for {$site_name}\n";
-        $content .= "# Generated by AlloIA WooCommerce Plugin\n\n";
-        
-        if ($site_description) {
-            $content .= "# Site Description: {$site_description}\n\n";
-        }
-        
+     */        
         $content .= "# Site URL: {$site_url}\n";
         $content .= "# Generated: " . wp_date('Y-m-d H:i:s') . "\n\n";
         
