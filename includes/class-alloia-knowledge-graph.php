@@ -218,8 +218,9 @@ class AlloIA_Knowledge_Graph_Exporter {
      */
     private function convert_product_to_node($wc_product) {
         $product_id = $wc_product->get_id();
+        $product_type = $wc_product->get_type();
         
-        return array(
+        $node = array(
             'id' => 'product-' . $product_id,
             'type' => 'product',
             'labels' => array(
@@ -254,9 +255,32 @@ class AlloIA_Knowledge_Graph_Exporter {
                 'createdAt' => $wc_product->get_date_created()->format('c'),
                 'updatedAt' => $wc_product->get_date_modified()->format('c'),
                 'woocommerce_id' => $product_id,
-                'permalink' => get_permalink($product_id)
+                'permalink' => get_permalink($product_id),
+                'product_type' => $product_type
             )
         );
+        
+        // Add variants for variable products
+        if ($product_type === 'variable') {
+            $variants = $this->extract_product_variants($wc_product);
+            if (!empty($variants)) {
+                $node['properties']['variants'] = $variants;
+                $node['properties']['has_variations'] = true;
+                $node['properties']['variation_count'] = count($variants);
+                
+                // Calculate price range from variants
+                $prices = array_column($variants, 'price');
+                if (!empty($prices)) {
+                    $node['properties']['price_range'] = array(
+                        'min' => min($prices),
+                        'max' => max($prices),
+                        'currency' => get_woocommerce_currency()
+                    );
+                }
+            }
+        }
+        
+        return $node;
     }
     
     /**
@@ -312,12 +336,13 @@ class AlloIA_Knowledge_Graph_Exporter {
      * Get product images
      * 
      * @param WC_Product $wc_product WooCommerce product
-     * @return array Product images
+     * @return array Product images (limited to 10 maximum)
      */
     private function get_product_images($wc_product) {
         $images = array();
+        $max_images = 10; // API validation limit
         
-        // Main product image
+        // Main product image - highest priority
         $main_image_id = $wc_product->get_image_id();
         if ($main_image_id) {
             $main_image_url = wp_get_attachment_image_url($main_image_id, 'full');
@@ -326,12 +351,31 @@ class AlloIA_Knowledge_Graph_Exporter {
             }
         }
         
-        // Gallery images
-        $gallery_ids = $wc_product->get_gallery_image_ids();
-        foreach ($gallery_ids as $gallery_id) {
-            $gallery_url = wp_get_attachment_image_url($gallery_id, 'full');
-            if ($gallery_url) {
-                $images[] = $gallery_url;
+        // Gallery images - up to remaining slots
+        $remaining_slots = $max_images - count($images);
+        if ($remaining_slots > 0) {
+            $gallery_ids = $wc_product->get_gallery_image_ids();
+            
+            // Debug: Log gallery image count for variable products
+            if (defined('WP_DEBUG') && WP_DEBUG && count($gallery_ids) > $remaining_slots) {
+                error_log(sprintf(
+                    'AlloIA: Product %s (ID: %d) has %d gallery images, limiting to %d (max %d total)',
+                    $wc_product->get_name(),
+                    $wc_product->get_id(),
+                    count($gallery_ids),
+                    $remaining_slots,
+                    $max_images
+                ));
+            }
+            
+            // Limit gallery images to remaining slots
+            $gallery_ids_limited = array_slice($gallery_ids, 0, $remaining_slots);
+            
+            foreach ($gallery_ids_limited as $gallery_id) {
+                $gallery_url = wp_get_attachment_image_url($gallery_id, 'full');
+                if ($gallery_url) {
+                    $images[] = $gallery_url;
+                }
             }
         }
         
@@ -826,5 +870,212 @@ class AlloIA_Knowledge_Graph_Exporter {
                 'message' => 'Export test failed: ' . $e->getMessage()
             );
         }
+    }
+    
+    /**
+     * Extract all variants for a variable product
+     * 
+     * @param WC_Product_Variable $product Variable product instance
+     * @return array Array of variant data
+     */
+    private function extract_product_variants($product) {
+        $variants = array();
+        $variation_ids = $product->get_children();
+        
+        foreach ($variation_ids as $variation_id) {
+            $variation = wc_get_product($variation_id);
+            
+            if (!$variation || !$variation->exists()) {
+                continue;
+            }
+            
+            $variant_data = $this->extract_single_variant($variation, $product);
+            if ($variant_data) {
+                $variants[] = $variant_data;
+            }
+        }
+        
+        return $variants;
+    }
+    
+    /**
+     * Extract single variant data
+     * 
+     * @param WC_Product_Variation $variation Variation instance
+     * @param WC_Product_Variable $parent Parent product instance
+     * @return array|null Variant data or null if invalid
+     */
+    private function extract_single_variant($variation, $parent) {
+        try {
+            // Basic identification
+            $variant_data = array(
+                'id' => (string) $variation->get_id(),
+                'parent_product_id' => (string) $parent->get_id(),
+                'sku' => $variation->get_sku() ?: 'VAR-' . $variation->get_id(),
+                'title' => $variation->get_name()
+            );
+            
+            // Pricing
+            $variant_data['price'] = (float) $variation->get_price();
+            $variant_data['regular_price'] = (float) $variation->get_regular_price();
+            $sale_price = $variation->get_sale_price();
+            $variant_data['sale_price'] = $sale_price ? (float) $sale_price : null;
+            $variant_data['currency'] = get_woocommerce_currency();
+            
+            // Attributes - normalized and raw
+            $raw_attributes = $variation->get_attributes();
+            $variant_data['attributes'] = $this->normalize_variant_attributes($raw_attributes, $parent);
+            $variant_data['attributes_raw'] = array(
+                'woocommerce' => $raw_attributes
+            );
+            
+            // Inventory
+            $variant_data['in_stock'] = $variation->is_in_stock();
+            $variant_data['inventory_quantity'] = $variation->get_stock_quantity();
+            $variant_data['inventory_policy'] = $variation->backorders_allowed() ? 'backorder' : 'deny';
+            
+            // Images
+            $variant_data['images'] = $this->get_variant_images($variation, $parent);
+            
+            // Checkout URL
+            $variant_data['checkout_url'] = $this->generate_variant_checkout_url($variation);
+            
+            // Physical attributes
+            $variant_data['weight'] = (float) $variation->get_weight();
+            $variant_data['weight_unit'] = get_option('woocommerce_weight_unit', 'kg');
+            $variant_data['dimensions'] = array(
+                'length' => (float) $variation->get_length(),
+                'width' => (float) $variation->get_width(),
+                'height' => (float) $variation->get_height(),
+                'unit' => get_option('woocommerce_dimension_unit', 'cm')
+            );
+            
+            // Metadata
+            $variant_data['created_at'] = $variation->get_date_created() ? $variation->get_date_created()->format('c') : null;
+            $variant_data['updated_at'] = $variation->get_date_modified() ? $variation->get_date_modified()->format('c') : null;
+            
+            return $variant_data;
+            
+        } catch (Exception $e) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('AlloIA: Error extracting variant ' . $variation->get_id() . ': ' . $e->getMessage());
+            }
+            return null;
+        }
+    }
+    
+    /**
+     * Normalize variant attributes for consistent AI querying
+     * 
+     * @param array $raw_attributes Raw WooCommerce attributes
+     * @param WC_Product_Variable $parent Parent product for attribute labels
+     * @return array Normalized attributes (lowercase keys, clean values)
+     */
+    private function normalize_variant_attributes($raw_attributes, $parent) {
+        $normalized = array();
+        
+        foreach ($raw_attributes as $attribute_name => $attribute_value) {
+            // Remove 'attribute_' prefix and 'pa_' taxonomy prefix
+            $clean_name = str_replace(array('attribute_', 'pa_'), '', $attribute_name);
+            $clean_name = strtolower(trim($clean_name));
+            
+            // Get human-readable label from parent product
+            $parent_attributes = $parent->get_attributes();
+            $label = $clean_name;
+            
+            foreach ($parent_attributes as $attr) {
+                if ($attr->get_name() === $attribute_name || 
+                    $attr->get_name() === str_replace('attribute_', '', $attribute_name)) {
+                    $label = strtolower($attr->get_name());
+                    break;
+                }
+            }
+            
+            // Clean and store value
+            $normalized[$label] = sanitize_text_field($attribute_value);
+        }
+        
+        return $normalized;
+    }
+    
+    /**
+     * Get images for a variant
+     * 
+     * @param WC_Product_Variation $variation Variation instance
+     * @param WC_Product_Variable $parent Parent product for fallback
+     * @return array Array of image URLs (max 5 per variant)
+     */
+    private function get_variant_images($variation, $parent) {
+        $images = array();
+        $max_variant_images = 5;
+        
+        // Get variation-specific image
+        $variation_image_id = $variation->get_image_id();
+        if ($variation_image_id) {
+            $variation_image_url = wp_get_attachment_image_url($variation_image_id, 'full');
+            if ($variation_image_url) {
+                $images[] = $variation_image_url;
+            }
+        }
+        
+        // If no variation image, use parent's main image as fallback
+        if (empty($images)) {
+            $parent_image_id = $parent->get_image_id();
+            if ($parent_image_id) {
+                $parent_image_url = wp_get_attachment_image_url($parent_image_id, 'full');
+                if ($parent_image_url) {
+                    $images[] = $parent_image_url;
+                }
+            }
+        }
+        
+        // Add up to 4 more images from parent gallery (if space available)
+        $remaining_slots = $max_variant_images - count($images);
+        if ($remaining_slots > 0) {
+            $gallery_ids = $parent->get_gallery_image_ids();
+            $gallery_ids_limited = array_slice($gallery_ids, 0, $remaining_slots);
+            
+            foreach ($gallery_ids_limited as $gallery_id) {
+                $gallery_url = wp_get_attachment_image_url($gallery_id, 'full');
+                if ($gallery_url) {
+                    $images[] = $gallery_url;
+                }
+            }
+        }
+        
+        return $images;
+    }
+    
+    /**
+     * Generate checkout URL for a specific variant
+     * 
+     * @param WC_Product_Variation $variation Variation instance
+     * @return string Direct add-to-cart URL for this variant
+     */
+    private function generate_variant_checkout_url($variation) {
+        $product_id = $variation->get_parent_id();
+        $variation_id = $variation->get_id();
+        
+        // Get cart URL
+        $cart_url = wc_get_cart_url();
+        
+        // Build add-to-cart URL with variation parameters
+        $checkout_url = add_query_arg(array(
+            'add-to-cart' => $product_id,
+            'variation_id' => $variation_id,
+            'quantity' => 1
+        ), $cart_url);
+        
+        // Add variation attributes to URL
+        $attributes = $variation->get_attributes();
+        foreach ($attributes as $attr_key => $attr_value) {
+            $checkout_url = add_query_arg(
+                'attribute_' . sanitize_title($attr_key),
+                $attr_value,
+                $checkout_url
+            );
+        }
+        
+        return esc_url_raw($checkout_url);
     }
 }

@@ -5,6 +5,29 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-12-09
+
+### Added
+- **Product Variant Support**: Full support for WooCommerce variable products
+  - Each product variation is now synced individually to the knowledge graph
+  - Variants include unique SKU, price, images, inventory, and checkout URL
+  - AI agents can now discover and purchase specific product variations
+  - Normalized attribute format for consistent AI querying (e.g., "color", "size")
+  - Automatic price range calculation for variable products
+  - Up to 5 images per variant (with parent product fallback)
+  - Direct add-to-cart URLs for each variant
+
+### Improved
+- **Knowledge Graph Data Quality**: Variable products now provide complete variation information
+- **AI Shopping Experience**: Customers can ask for specific variants (e.g., "Show me the red t-shirt in large")
+- **Attribute Normalization**: Consistent attribute naming across WooCommerce global and custom attributes
+
+### Technical
+- New methods: `extract_product_variants()`, `extract_single_variant()`, `normalize_variant_attributes()`
+- New methods: `get_variant_images()`, `generate_variant_checkout_url()`
+- Enhanced `convert_product_to_node()` to detect and process variable products
+- Dual attribute storage: normalized for AI + raw WooCommerce format for compatibility
+
 ## [1.7.4] - 2025-12-08
 
 ### Removed
