@@ -198,7 +198,7 @@ class AlloIA_Core {
         $path = wp_parse_url($url, PHP_URL_PATH);
         if ($path) {
             $basename = basename($path);
-            if (\$basename === 'robots.txt') {
+            if ($basename === 'robots.txt') {
                 return file_exists(ABSPATH . $basename);
             }
         }
