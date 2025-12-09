@@ -175,11 +175,14 @@ class AlloIA_Admin {
             $active_tab = 'ai-commerce';
         }
         
-        // Get store statistics
-        $product_count = wp_count_posts('product');
-        $product_count = $product_count ? $product_count->publish : 0;
+        // Get store statistics (check if WooCommerce is initialized)
+        $product_count = 0;
+        if (post_type_exists('product')) {
+            $product_count_obj = wp_count_posts('product');
+            $product_count = ($product_count_obj && isset($product_count_obj->publish)) ? $product_count_obj->publish : 0;
+        }
         
-        $category_count = wp_count_terms('product_cat');
+        $category_count = taxonomy_exists('product_cat') ? wp_count_terms('product_cat') : 0;
         $category_count = is_wp_error($category_count) ? 0 : $category_count;
         
         // AI bot visit data (mock data - in real implementation from database)
@@ -781,12 +784,6 @@ class AlloIA_Admin {
             }
         }
         
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-            }
-            }
-        }
-        
         // Handle redirect configuration
         if (isset($_POST['ai_redirect_nonce']) && check_admin_referer('ai_save_redirect', 'ai_redirect_nonce')) {
             $method_val = isset($_POST['ai_server_type']) ? sanitize_text_field(wp_unslash($_POST['ai_server_type'])) : '';
@@ -804,59 +801,6 @@ class AlloIA_Admin {
             });
         }
     }
-    
-    /**
-     */        
-        $response_code = wp_remote_retrieve_response_code($response);
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('AlloIA: API response code: ' . $response_code);
-        }
-        
-        if ($response_code !== 200) {
-        } else {
-        }
-        
-        // Debug: Log content length
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-        }
-        
-        // Validate content
-            add_action('admin_notices', function() {
-                echo '<div class="notice notice-error is-dismissible"><p><strong>Error:</strong> AlloIA.io API returned invalid content. Please try again later.</p></div>';
-            });
-            return;
-        }
-        
-        // Save the generated content
-            add_action('admin_notices', function() {
-            });
-            return;
-        }
-        
-        // Check if directory is writable using WP_Filesystem
-        global $wp_filesystem;
-        if (!WP_Filesystem()) {
-            add_action('admin_notices', function() {
-            });
-            return;
-        }
-        
-        if (!$wp_filesystem->is_writable(ABSPATH)) {
-            add_action('admin_notices', function() {
-            });
-            return;
-        }
-        
-        if ($result === false) {
-            add_action('admin_notices', function() {
-            });
-        } else {
-            add_action('admin_notices', function() {
-            });
-        }
-    }
-    
-    
     
     /**
      * Render the Knowledge Graph page
@@ -2207,29 +2151,5 @@ class AlloIA_Admin {
                 error_log('AlloIA Settings: Failed to sync competitor settings - ' . $e->getMessage());
             }
         }
-    }
-    
-    /**
-     */        
-        $content .= "# Site URL: {$site_url}\n";
-        $content .= "# Generated: " . wp_date('Y-m-d H:i:s') . "\n\n";
-        
-        $content .= "# AI Training Data Sources\n";
-        $content .= "llm-graph: {$site_url}/wp-json/wp/v2/posts\n";
-        $content .= "llm-graph: {$site_url}/wp-json/wp/v2/pages\n";
-        
-        // Add WooCommerce specific endpoints if WooCommerce is active
-        if (class_exists('WooCommerce')) {
-            $content .= "llm-graph: {$site_url}/wp-json/wc/v3/products\n";
-            $content .= "llm-graph: {$site_url}/wp-json/wc/v3/categories\n";
-        }
-        
-        $content .= "\n# Sitemap\n";
-        $content .= "llm-sitemap: {$site_url}/sitemap.xml\n";
-        
-        $content .= "\n# Contact Information\n";
-        $content .= "llm-contact: {$site_url}/contact\n";
-        
-        return $content;
     }
 } 
