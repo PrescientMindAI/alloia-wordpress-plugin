@@ -5,30 +5,23 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.8.0] - 2025-12-09
+## [1.7.3] - 2025-12-09
 
-### Added
-- **Product Variant Support**: Full support for WooCommerce variable products
-  - Each product variation is now synced individually to the knowledge graph
-  - Variants include unique SKU, price, images, inventory, and checkout URL
-  - AI agents can now discover and purchase specific product variations
-  - Normalized attribute format for consistent AI querying (e.g., "color", "size")
-  - Automatic price range calculation for variable products
-  - Up to 5 images per variant (with parent product fallback)
-  - Direct add-to-cart URLs for each variant
+### Fixed
+- **Variable Product Support**: Fixed incomplete variation data sync for WooCommerce variable products
+  - Each product variation is now properly synced individually to the knowledge graph
+  - Variants now include complete data: unique SKU, price, images, inventory, and checkout URL
+  - AI agents can now correctly discover and purchase specific product variations
+  - Fixed attribute normalization for consistent AI querying across WooCommerce global and custom attributes
+  - Added automatic price range calculation for variable products
+  - Images now properly limited (up to 5 per variant with parent product fallback)
+  - Direct add-to-cart URLs now generated for each variant
 
-### Improved
-- **Knowledge Graph Data Quality**: Variable products now provide complete variation information
-- **AI Shopping Experience**: Customers can ask for specific variants (e.g., "Show me the red t-shirt in large")
-- **Attribute Normalization**: Consistent attribute naming across WooCommerce global and custom attributes
-
-### Technical
-- New methods: `extract_product_variants()`, `extract_single_variant()`, `normalize_variant_attributes()`
-- New methods: `get_variant_images()`, `generate_variant_checkout_url()`
-- Enhanced `convert_product_to_node()` to detect and process variable products
-- Dual attribute storage: normalized for AI + raw WooCommerce format for compatibility
-
-## [1.7.4] - 2025-12-08
+- **Image Limit Error**: Fixed "Too many images (max 10)" validation error for variable products
+  - `get_product_images()` now limits images to maximum of 10 (1 main + up to 9 gallery)
+  - Prioritizes main product image over gallery images
+  - Adds debug logging when image count exceeds limit
+  - Resolves sync issues with products using "Additional Variation Images Gallery" plugin
 
 ### Removed
 - **Deprecated llms.txt Feature**: Completely removed deprecated llms.txt functionality
@@ -39,21 +32,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolves issues with llms.txt generation errors
 
 ### Improved
-- **Code Cleanup**: Removed unused code and reduced plugin complexity
+- **Code Cleanup**: Removed 159 lines of unused code, reducing plugin complexity
 - **Performance**: Eliminated unnecessary API calls and file operations
-
-## [1.7.3] - 2025-12-08
-
-### Fixed
-- **Image Limit Error**: Fixed "Too many images (max 10)" validation error for variable products
-  - `get_product_images()` now limits images to maximum of 10 (1 main + up to 9 gallery)
-  - Prioritizes main product image over gallery images
-  - Adds debug logging when image count exceeds limit
-  - Resolves sync issues with products using "Additional Variation Images Gallery" plugin
-
-### Improved
+- **Knowledge Graph Data Quality**: Variable products now provide complete variation information
+- **AI Shopping Experience**: Customers can ask for specific variants (e.g., "Show me the red t-shirt in large")
 - **Variable Product Support**: Better handling of WooCommerce variable products with multiple variation images
-- **Debug Logging**: Added informative logs for image collection process
+- **Debug Logging**: Added informative logs for image collection and variant processing
+
+### Technical
+- Added methods: `extract_product_variants()`, `extract_single_variant()`, `normalize_variant_attributes()`
+- Added methods: `get_variant_images()`, `generate_variant_checkout_url()`
+- Enhanced `convert_product_to_node()` to properly detect and process variable products
+- Dual attribute storage: normalized for AI + raw WooCommerce format for compatibility
 
 ## [1.0.1] - 2024-12-19
 
