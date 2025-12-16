@@ -5,6 +5,33 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-12-16
+
+### Fixed
+- **CRITICAL: Dynamic URL Detection**: AI bot redirect now respects WooCommerce permalink settings
+  - Reads product base dynamically from `woocommerce_permalinks` option
+  - Automatically adapts when user changes WooCommerce product base
+  - Supports custom product bases (e.g., `/collection/`, `/shop/`, `/boutique/`)
+  - Supports category-based permalinks (e.g., `/shop/%product_cat%/`)
+  - No more hardcoded `/product/` pattern
+  - Optional custom pattern override for edge cases
+
+- **Bug Impact**: v1.8.0 only worked for default `/product/` URLs
+  - Sites with custom product base had NO redirect (AI bots got suboptimal HTML)
+  - Example: parapluiedecherbourg.com uses `/collection/` → v1.8.0 failed completely
+  - v1.9.0 fixes by reading WooCommerce settings automatically
+
+### Changed
+- Updated `is_product_url()` to use WooCommerce permalink settings
+- Updated `extract_product_slug()` to handle any product base dynamically
+- Removed hardcoded patterns (simplified, cleaner, more accurate)
+
+### Technical
+- WooCommerce product base read on every request (no caching needed, it's fast)
+- Handles category placeholders in product base (extracts first segment)
+- Optional `custom_product_url_patterns` setting for edge cases
+- Zero configuration required (works automatically for all WooCommerce setups)
+
 ## [1.8.0] - 2025-12-16
 
 ### Added

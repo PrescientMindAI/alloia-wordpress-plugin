@@ -830,34 +830,91 @@ class AlloIA_Core {
     /**
      * Check if URL is a product page
      * 
-     * Detects WooCommerce product URLs based on common permalink patterns:
-     * - /product/product-name (default WooCommerce structure)
-     * - /shop/product-name (alternative permalink settings)
+     * Dynamically detects product URLs by reading WooCommerce permalink settings.
+     * Automatically adapts when user changes WooCommerce product base.
      * 
      * @param string $uri Request URI to check
      * @return bool True if URL matches product page pattern
      */
     private function is_product_url($uri) {
-        // WooCommerce product URL patterns:
-        // - /product/product-name
-        // - /shop/product-name  (depending on permalink settings)
-        return (strpos($uri, '/product/') !== false) || 
-               (preg_match('/\/shop\/[^\/]+\/?$/', $uri));
+        // Get WooCommerce product base from permalink settings (dynamic)
+        $permalinks = get_option('woocommerce_permalinks', array());
+        $product_base = isset($permalinks['product_base']) ? trim($permalinks['product_base'], '/') : 'product';
+        
+        // Remove category placeholder if present (e.g., shop/%product_cat%)
+        if (strpos($product_base, '%') !== false) {
+            // Extract base before placeholder: shop/%product_cat% → shop
+            $parts = explode('/', $product_base);
+            $product_base = $parts[0];
+        }
+        
+        // Get optional custom patterns from plugin settings
+        $settings = get_option('alloia_settings', array());
+        $custom_patterns = isset($settings['custom_product_url_patterns']) 
+            ? $settings['custom_product_url_patterns'] 
+            : '';
+        
+        // Start with WooCommerce setting only
+        $patterns = array($product_base);
+        
+        // Add custom patterns if provided (for edge cases)
+        if (!empty($custom_patterns)) {
+            $custom = array_map('trim', explode(',', $custom_patterns));
+            $patterns = array_merge($patterns, $custom);
+        }
+        
+        // Remove duplicates and empty values
+        $patterns = array_unique(array_filter($patterns));
+        
+        // Check if URI matches any pattern
+        foreach ($patterns as $pattern) {
+            // Match: /pattern/product-slug or /pattern/product-slug/
+            if (preg_match('#/' . preg_quote($pattern, '#') . '/[^/]+/?#i', $uri)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**
      * Extract product slug from URL
      * 
-     * Parses the product slug from a WooCommerce product URL.
-     * Returns sanitized slug suitable for API calls.
+     * Dynamically extracts the product slug using WooCommerce permalink settings.
+     * Works with any product base (product, collection, shop, etc.).
      * 
      * @param string $uri Request URI to parse
      * @return string|null Product slug if found, null otherwise
      */
     private function extract_product_slug($uri) {
-        // Extract product slug from URL
-        if (preg_match('/\/product\/([^\/\?]+)/', $uri, $matches)) {
-            return sanitize_title($matches[1]);
+        // Get WooCommerce product base (same logic as is_product_url)
+        $permalinks = get_option('woocommerce_permalinks', array());
+        $product_base = isset($permalinks['product_base']) ? trim($permalinks['product_base'], '/') : 'product';
+        
+        // Remove category placeholder if present
+        if (strpos($product_base, '%') !== false) {
+            $parts = explode('/', $product_base);
+            $product_base = $parts[0];
+        }
+        
+        // Get custom patterns
+        $settings = get_option('alloia_settings', array());
+        $custom_patterns = isset($settings['custom_product_url_patterns']) 
+            ? $settings['custom_product_url_patterns'] 
+            : '';
+        
+        $patterns = array($product_base);
+        if (!empty($custom_patterns)) {
+            $custom = array_map('trim', explode(',', $custom_patterns));
+            $patterns = array_merge($patterns, $custom);
+        }
+        
+        // Try to extract slug using any pattern
+        foreach ($patterns as $pattern) {
+            $regex = '#/' . preg_quote($pattern, '#') . '/([^/\?]+)#i';
+            if (preg_match($regex, $uri, $matches)) {
+                return sanitize_title($matches[1]);
+            }
         }
         
         return null;
