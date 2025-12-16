@@ -34,9 +34,13 @@ class AlloIA_Core {
         
         // Tracking code injection
         add_action('wp_head', array($this, 'inject_tracking_code'));
+        
+        // AI-optimized meta tags injection (for all traffic including Googlebot)
+        add_action('wp_head', array($this, 'inject_ai_optimized_meta_tags'), 1);
 
         // Optional AI bot redirection (PHP/WP mode)
-        add_action('init', array($this, 'maybe_redirect_ai_bots'), 1);
+        // CRITICAL: Using muplugins_loaded for early interception before WordPress full load
+        add_action('muplugins_loaded', array($this, 'maybe_redirect_ai_bots'), 1);
     }
 
     // On plugin activation: flush rewrite rules and show admin notice
@@ -632,75 +636,369 @@ class AlloIA_Core {
         return array('sessions' => 0, 'conversion_rate' => 0.0);
     }
 
-    // Redirect AI bots to ai.<domain> when enabled and method is php/wp
+    /**
+     * AI Bot Traffic Optimization - Redirect AI bots to AlloIA graph API
+     * 
+     * Redirects AI bots to AlloIA graph API for superior product data
+     * while protecting Google SEO rankings (Googlebot never redirected).
+     * 
+     * CRITICAL: This function executes BEFORE WordPress fully loads
+     * to minimize overhead. Exit immediately after redirect.
+     */
     public function maybe_redirect_ai_bots() {
         // Only on frontend
         if (is_admin()) return;
         if (defined('DOING_AJAX') && DOING_AJAX) return;
 
-        $enabled = (bool) get_option('ai_redirect_enabled', false);
-        $method = get_option('ai_server_type', '');
-        if (!$enabled || !in_array($method, array('php', 'wp'), true)) return;
-
-        // Avoid loops on ai. subdomain
-        $current_host = isset($_SERVER['HTTP_HOST']) ? strtolower(sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST']))) : '';
-        $root_host = wp_parse_url(home_url(), PHP_URL_HOST);
-        $ai_host = 'ai.' . $root_host;
-        if ($current_host === strtolower($ai_host)) return;
-
-        $ua = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
-        if ($ua === '') return;
-
-        $bots = array_unique(array_merge($this->get_search_bots_list(), $this->get_training_bots_list()));
-        foreach ($bots as $bot) {
-            if (stripos($ua, $bot) !== false) {
-                $request_uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '/';
-                $target = 'https://' . $ai_host . $request_uri;
-                wp_redirect($target, 302);
-                exit;
+        // Get user agent
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
+        
+        if (empty($user_agent)) {
+            return; // No user agent, let request through
+        }
+        
+        // CRITICAL: NEVER redirect traditional Googlebot (SEO protection)
+        // Googlebot is Google's traditional SEO crawler - redirecting would harm search rankings.
+        // Note: Google-Extended (AI training bot) is handled separately and IS redirected.
+        // This check is ALWAYS active (no UI toggle).
+        if ($this->is_traditional_googlebot($user_agent)) {
+            // Traditional Googlebot detected - inject meta tags only, no redirect
+            // Meta tags provide AI guidance without affecting SEO rankings
+            return;
+        }
+        
+        // Check if this is an AI bot using database-driven patterns
+        $is_ai_bot = $this->detect_ai_bot($user_agent);
+        
+        if (!$is_ai_bot) {
+            return; // Not an AI bot, let request through
+        }
+        
+        // AI bot detected - check if feature is enabled
+        $options = get_option('alloia_settings', array());
+        $redirect_enabled = isset($options['ai_redirect_enabled']) ? 
+                            $options['ai_redirect_enabled'] : true; // Default ON
+        
+        if (!$redirect_enabled) {
+            return; // Feature disabled by user
+        }
+        
+        // Only redirect product pages
+        // Note: is_product() may not be available this early
+        // Check URL pattern instead
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '';
+        $is_product_page = $this->is_product_url($request_uri);
+        
+        if (!$is_product_page) {
+            return; // Not a product page
+        }
+        
+        // Extract product slug from URL
+        $product_slug = $this->extract_product_slug($request_uri);
+        
+        if (empty($product_slug)) {
+            return; // Couldn't determine product slug
+        }
+        
+        // Build AlloIA API URL
+        // Use product slug (URL handle) not SKU
+        $graph_url = sprintf(
+            'https://www.alloia.io/product/%s',
+            urlencode($product_slug)
+        );
+        
+        // Get client domain for headers
+        $original_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
+        
+        // Log redirect for monitoring
+        $this->log_ai_bot_redirect($user_agent, $request_uri, $graph_url);
+        
+        // Perform 301 redirect with headers
+        header("Location: $graph_url", true, 301);
+        header("X-Original-Host: $original_host");
+        header("X-Original-Path: $request_uri");
+        header("X-Forwarded-Host: $original_host");
+        header("X-AI-Bot: true");
+        header("X-AlloIA-Redirect: AI-Optimized");
+        
+        // Exit immediately - no further WordPress processing
+        exit;
+    }
+    
+    /**
+     * Check if user agent is traditional Googlebot (SEO crawler)
+     * 
+     * CRITICAL: Traditional Googlebot must NEVER be redirected to protect SEO rankings.
+     * This distinguishes between:
+     * - Googlebot (SEO crawler) - Returns TRUE, never redirect
+     * - Google-Extended (AI training) - Returns FALSE, safe to redirect
+     * 
+     * @param string $user_agent User agent string
+     * @return bool True if traditional Googlebot detected
+     */
+    private function is_traditional_googlebot($user_agent) {
+        // Check for "googlebot" but exclude "google-extended"
+        return stripos($user_agent, 'googlebot') !== false && 
+               stripos($user_agent, 'google-extended') === false;
+    }
+    
+    /**
+     * Detect if user agent is an AI bot using database-driven patterns
+     * 
+     * Fetches patterns from API with 5-minute caching, falls back to hardcoded list
+     * 
+     * @param string $user_agent User agent string
+     * @return bool True if AI bot detected
+     */
+    private function detect_ai_bot($user_agent) {
+        // Try to get patterns from transient cache first
+        $bot_patterns = get_transient('alloia_ai_bot_patterns');
+        
+        if ($bot_patterns === false) {
+            // Cache miss - fetch from API
+            $response = wp_remote_get('https://www.alloia.io/api/ai-bot-patterns/simple', array(
+                'timeout' => 5,
+                'sslverify' => true
+            ));
+            
+            if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+                $body = wp_remote_retrieve_body($response);
+                $data = json_decode($body, true);
+                
+                if (is_array($data) && !empty($data)) {
+                    $bot_patterns = $data;
+                    // Cache for 5 minutes
+                    set_transient('alloia_ai_bot_patterns', $bot_patterns, 5 * MINUTE_IN_SECONDS);
+                    
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('AlloIA: Fetched AI bot patterns from API (' . count($bot_patterns) . ' patterns)');
+                    }
+                } else {
+                    // API returned invalid data, use fallback
+                    $bot_patterns = $this->get_fallback_ai_bot_patterns();
+                }
+            } else {
+                // API request failed, use fallback
+                $bot_patterns = $this->get_fallback_ai_bot_patterns();
+                
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('AlloIA: API fetch failed, using fallback patterns');
+                }
             }
+        }
+        
+        // Check user agent against patterns
+        $user_agent_lower = strtolower($user_agent);
+        foreach ($bot_patterns as $pattern) {
+            if (stripos($user_agent_lower, strtolower($pattern)) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get fallback AI bot patterns when API is unavailable
+     * 
+     * MAINTENANCE NOTE: This is a FALLBACK list - production uses database-driven patterns
+     * fetched from www.alloia.io/api/ai-bot-patterns/simple
+     * 
+     * @return array Fallback bot patterns
+     */
+    private function get_fallback_ai_bot_patterns() {
+        return array(
+            'gptbot',           // OpenAI web crawler
+            'chatgpt-user',     // ChatGPT browsing mode
+            'claude',           // Anthropic Claude
+            'anthropic',        // Anthropic web crawler
+            'perplexity',       // Perplexity AI
+            'perplexitybot',    // Perplexity web crawler
+            'gemini',           // Google Gemini AI
+            'bard',             // Google Bard (legacy)
+            'google-extended',  // Google AI training bot (NOT Googlebot for SEO)
+            'grokbot',          // xAI Grok
+            'xai-grok',         // xAI Grok alternative
+            'deepseekbot',      // DeepSeek AI
+            'cohere',           // Cohere AI
+            'you.com',          // You.com search AI
+            'meta-externalagent', // Meta AI
+            'applebot-extended', // Apple Intelligence (NOT regular Applebot)
+        );
+    }
+    
+    /**
+     * Check if URL is a product page
+     * 
+     * Detects WooCommerce product URLs based on common permalink patterns:
+     * - /product/product-name (default WooCommerce structure)
+     * - /shop/product-name (alternative permalink settings)
+     * 
+     * @param string $uri Request URI to check
+     * @return bool True if URL matches product page pattern
+     */
+    private function is_product_url($uri) {
+        // WooCommerce product URL patterns:
+        // - /product/product-name
+        // - /shop/product-name  (depending on permalink settings)
+        return (strpos($uri, '/product/') !== false) || 
+               (preg_match('/\/shop\/[^\/]+\/?$/', $uri));
+    }
+    
+    /**
+     * Extract product slug from URL
+     * 
+     * Parses the product slug from a WooCommerce product URL.
+     * Returns sanitized slug suitable for API calls.
+     * 
+     * @param string $uri Request URI to parse
+     * @return string|null Product slug if found, null otherwise
+     */
+    private function extract_product_slug($uri) {
+        // Extract product slug from URL
+        if (preg_match('/\/product\/([^\/\?]+)/', $uri, $matches)) {
+            return sanitize_title($matches[1]);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Log AI bot redirect for monitoring
+     * 
+     * NOTE: Full analytics will be added in Phase 2
+     * For now, just error_log for troubleshooting
+     * 
+     * @param string $user_agent User agent string
+     * @param string $request_uri Request URI
+     * @param string $graph_url Target graph URL
+     */
+    private function log_ai_bot_redirect($user_agent, $request_uri, $graph_url) {
+        $bot_type = $this->identify_bot_type($user_agent);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log(sprintf(
+                "AlloIA: AI bot redirect - Bot: %s, URI: %s, Graph: %s",
+                $bot_type,
+                $request_uri,
+                $graph_url
+            ));
         }
     }
-
-    // Add or remove Apache .htaccess redirect rules
-    public function update_apache_htaccess_rules($method) {
-        $enabled = (get_option('ai_redirect_enabled', false) && $method === 'apache');
-        $htaccess = ABSPATH . '.htaccess';
-        if (!file_exists($htaccess)) {
-            if ($enabled) {
-                add_action('admin_notices', function(){
-                    echo '<div class="notice notice-warning is-dismissible"><p>.htaccess not found. Please add the Apache rules manually.</p></div>';
-                });
-            }
-            return false;
+    
+    /**
+     * Identify bot type from user agent
+     * 
+     * @param string $user_agent User agent string
+     * @return string Bot type (e.g., "ChatGPT", "Claude", "Perplexity")
+     */
+    private function identify_bot_type($user_agent) {
+        $user_agent_lower = strtolower($user_agent);
+        
+        if (strpos($user_agent_lower, 'gptbot') !== false || 
+            strpos($user_agent_lower, 'chatgpt') !== false) {
+            return 'ChatGPT';
         }
-        $contents = @file_get_contents($htaccess);
-        if ($contents === false) return false;
-
-        $marker_start = "# BEGIN ALLOIA REDIRECT";
-        $marker_end   = "# END ALLOIA REDIRECT";
-        // Remove existing block
-        $pattern = '/' . preg_quote($marker_start,'/') . '[\s\S]*?' . preg_quote($marker_end,'/') . '/';
-        $contents = preg_replace($pattern, '', $contents);
-
-        if ($enabled) {
-            $root_host = wp_parse_url(home_url(), PHP_URL_HOST);
-            $ai_host = 'ai.' . $root_host;
-            $bots = array_unique(array_merge($this->get_search_bots_list(), $this->get_training_bots_list()));
-            $bots_regex = implode('|', array_map(function($b){ return preg_quote($b, '/'); }, $bots));
-            $block  = $marker_start . "\n";
-            $block .= "RewriteEngine On\n";
-            $block .= "RewriteCond %{HTTP_HOST} !^" . str_replace('.', '\\.', $ai_host) . "$ [NC]\n";
-            $block .= "RewriteCond %{HTTP_USER_AGENT} (" . $bots_regex . ") [NC]\n";
-            $block .= "RewriteRule ^(.*)$ https://" . $ai_host . "/$1 [R=302,L]\n";
-            $block .= $marker_end . "\n";
-
-            // Prepend block so it runs early
-            $contents = $block . $contents;
+        
+        if (strpos($user_agent_lower, 'claude') !== false || 
+            strpos($user_agent_lower, 'anthropic') !== false) {
+            return 'Claude';
         }
-
-        @file_put_contents($htaccess, $contents);
-        return true;
+        
+        if (strpos($user_agent_lower, 'google-extended') !== false) {
+            return 'Google-Extended (AI Training)';
+        }
+        
+        if (strpos($user_agent_lower, 'perplexity') !== false) {
+            return 'Perplexity';
+        }
+        
+        if (strpos($user_agent_lower, 'gemini') !== false) {
+            return 'Gemini';
+        }
+        
+        if (strpos($user_agent_lower, 'bard') !== false) {
+            return 'Bard';
+        }
+        
+        if (strpos($user_agent_lower, 'cohere') !== false) {
+            return 'Cohere';
+        }
+        
+        if (strpos($user_agent_lower, 'you.com') !== false) {
+            return 'You.com';
+        }
+        
+        return 'Other AI Bot';
+    }
+    
+    /**
+     * Inject AI-optimized meta tags on product pages
+     * 
+     * This runs for ALL traffic (including Googlebot, humans, and non-redirectable bots)
+     * Provides fallback guidance for bots that don't follow redirects
+     * 
+     * Hook: wp_head priority 1
+     */
+    public function inject_ai_optimized_meta_tags() {
+        // Check if we're on a product page
+        if (!is_product()) {
+            return;
+        }
+        
+        // Check if feature is enabled
+        $options = get_option('alloia_settings', array());
+        $metadata_enabled = isset($options['ai_metadata_enabled']) ? 
+                            $options['ai_metadata_enabled'] : true; // Default ON
+        
+        if (!$metadata_enabled) {
+            return; // Feature disabled by user
+        }
+        
+        // Get current product
+        global $product;
+        if (!$product) {
+            return;
+        }
+        
+        // Get product slug from URL or product
+        $product_slug = $product->get_slug();
+        if (empty($product_slug)) {
+            return; // No slug available
+        }
+        
+        // Build AlloIA API URL
+        // Use product slug (URL handle) not SKU
+        $graph_url = sprintf(
+            'https://www.alloia.io/product/%s',
+            urlencode($product_slug)
+        );
+        
+        // Output AI-optimized meta tags
+        echo "\n<!-- AlloIA AI-Optimized Product Data -->\n";
+        
+        // Link to JSON API endpoint (alternate representation)
+        echo '<link rel="alternate" type="application/json" href="' . esc_url($graph_url) . '" title="AI-Optimized Product Data">' . "\n";
+        
+        // Meta tag for AI content source
+        echo '<meta name="ai-content-source" content="' . esc_url($graph_url) . '">' . "\n";
+        
+        // JSON-LD structured data with sameAs
+        $product_data = array(
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'url' => get_permalink(),
+            'sameAs' => $graph_url,
+            'name' => $product->get_name(),
+            'sku' => $product->get_sku(),
+            'description' => wp_strip_all_tags($product->get_description())
+        );
+        
+        echo '<script type="application/ld+json">';
+        echo wp_json_encode($product_data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        echo '</script>' . "\n";
+        
+        echo "<!-- /AlloIA AI-Optimized Data -->\n";
     }
 
     // --- Audits and AI-Ready Score ---

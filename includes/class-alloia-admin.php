@@ -742,6 +742,34 @@ class AlloIA_Admin {
             }
         }
         
+        // AI Bot Settings Form Handler
+        // NOTE: Uses nested array 'alloia_settings' for grouping related AI bot features
+        // This differs from legacy settings like 'alloia_llm_training' which use direct options
+        // Rationale: Nested approach provides better organization for feature sets and
+        // allows for easier bulk operations on related settings
+        if (isset($_POST['save_ai_bot_settings']) && check_admin_referer('alloia_ai_bot_settings', 'alloia_ai_bot_nonce')) {
+            if (current_user_can('manage_options')) {
+                // Get current settings or initialize empty array
+                $options = get_option('alloia_settings', array());
+                
+                // Update AI redirect enabled setting
+                $options['ai_redirect_enabled'] = isset($_POST['alloia_settings']['ai_redirect_enabled']) ? 1 : 0;
+                
+                // Update AI metadata enabled setting
+                $options['ai_metadata_enabled'] = isset($_POST['alloia_settings']['ai_metadata_enabled']) ? 1 : 0;
+                
+                // Save updated settings
+                update_option('alloia_settings', $options);
+                
+                // Update robots.txt if redirect setting changed (affects AI training permission)
+                $this->core->update_physical_robots_txt();
+                
+                add_action('admin_notices', function() {
+                    echo '<div class="notice notice-success is-dismissible"><p>AI Bot settings saved successfully!</p></div>';
+                });
+            }
+        }
+        
         // Legacy form handlers for backwards compatibility
         $this->handle_legacy_forms();
     }
@@ -784,7 +812,7 @@ class AlloIA_Admin {
             }
         }
         
-        // Handle redirect configuration
+        // Handle redirect configuration (legacy - now handled by AI Bot Settings form)
         if (isset($_POST['ai_redirect_nonce']) && check_admin_referer('ai_save_redirect', 'ai_redirect_nonce')) {
             $method_val = isset($_POST['ai_server_type']) ? sanitize_text_field(wp_unslash($_POST['ai_server_type'])) : '';
             update_option('ai_server_type', $method_val);
@@ -792,10 +820,6 @@ class AlloIA_Admin {
             $enable = in_array($method_val, array('apache', 'nginx', 'php', 'wp', 'waf', 'edge'), true);
             update_option('ai_redirect_enabled', $enable);
 
-            // If Apache selected, attempt to insert .htaccess rules
-            if ($enable && $method_val === 'apache' && method_exists($this->core, 'update_apache_htaccess_rules')) {
-                $this->core->update_apache_htaccess_rules('apache');
-            }
             add_action('admin_notices', function() {
                 echo '<div class="notice notice-success is-dismissible"><p>Redirect configuration updated successfully!</p></div>';
             });
@@ -1597,6 +1621,8 @@ class AlloIA_Admin {
                 'message' => 'Product sync completed!',
                 'export_id' => $result['export_id'] ?? null,
                 'total_products' => $result['total_products'] ?? 0,
+                'exported_count' => $result['exported_count'] ?? 0, // ✅ FIX: Add exported_count
+                'failed_count' => $result['failed_count'] ?? 0,     // ✅ FIX: Add failed_count
                 'success' => $result['success'] ?? false,
                 'detailed_message' => $result['message'] ?? 'No detailed message',
                 'debug' => $debug_info,

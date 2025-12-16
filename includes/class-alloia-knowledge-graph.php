@@ -563,11 +563,17 @@ class AlloIA_Knowledge_Graph_Exporter {
         // Store export statistics
         $this->update_export_statistics($exported_count, $failed_count);
         
+        // Generate export ID for tracking
+        $export_id = 'export-' . time() . '-' . wp_generate_password(8, false);
+        update_option('alloia_last_export_id', $export_id);
+        
         return array(
             'success' => $failed_count === 0,
             'exported_count' => $exported_count,
             'failed_count' => $failed_count,
             'total_count' => count($graph_data['nodes']),
+            'total_products' => count($graph_data['nodes']), // Add total_products field for UI compatibility
+            'export_id' => $export_id, // Add export ID for tracking
             'errors' => $errors,
             'message' => "Exported {$exported_count} products successfully" . ($failed_count > 0 ? ", {$failed_count} failed" : '')
         );
@@ -793,15 +799,81 @@ class AlloIA_Knowledge_Graph_Exporter {
     /**
      * Get export statistics
      * 
+     * Fetches product count from AlloIA API (graph database) instead of local WordPress options
+     * 
      * @return array Export statistics
      */
     public function get_export_statistics() {
+        $local_exported = get_option('alloia_products_exported', 0);
+        $local_failed = get_option('alloia_products_export_failed', 0);
+        $last_export = get_option('alloia_last_export_timestamp', '');
+        $last_export_id = get_option('alloia_last_export_id', '');
+        
+        // Try to get actual count from AlloIA API/Graph
+        $api_product_count = $this->get_synced_products_count_from_api();
+        
+        // If API returns a valid count, use it; otherwise fall back to local count
+        $total_exported = ($api_product_count !== null) ? $api_product_count : $local_exported;
+        
         return array(
-            'total_exported' => get_option('alloia_products_exported', 0),
-            'total_failed' => get_option('alloia_products_export_failed', 0),
-            'last_export' => get_option('alloia_last_export_timestamp', ''),
-            'batch_size' => $this->batch_size
+            'total_exported' => $total_exported,
+            'total_failed' => $local_failed,
+            'last_export' => $last_export,
+            'last_export_id' => $last_export_id,
+            'batch_size' => $this->batch_size,
+            'source' => ($api_product_count !== null) ? 'api' : 'local' // Indicate data source
         );
+    }
+    
+    /**
+     * Get synced product count from AlloIA API/Graph
+     * 
+     * Queries the AlloIA API to get the actual count of synced products in the knowledge graph
+     * 
+     * @return int|null Product count from API, or null on failure
+     */
+    private function get_synced_products_count_from_api() {
+        try {
+            // Get client ID for this domain
+            $client_id = get_option('alloia_client_id', '');
+            if (empty($client_id)) {
+                // Try to get it from domain validation
+                $domain_validation = $this->api_client->validate_domain_for_sync();
+                if (isset($domain_validation['client_id'])) {
+                    $client_id = $domain_validation['client_id'];
+                    update_option('alloia_client_id', $client_id);
+                }
+            }
+            
+            if (empty($client_id)) {
+                return null; // Can't query without client ID
+            }
+            
+            // Query AlloIA API for product count
+            $response = $this->api_client->get_products_count($client_id);
+            
+            if (is_wp_error($response)) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('AlloIA: Failed to get product count from API: ' . $response->get_error_message());
+                }
+                return null;
+            }
+            
+            // Extract count from response
+            if (isset($response['count']) && is_numeric($response['count'])) {
+                // Cache the result for 5 minutes
+                set_transient('alloia_api_product_count', $response['count'], 5 * MINUTE_IN_SECONDS);
+                return intval($response['count']);
+            }
+            
+            return null;
+            
+        } catch (Exception $e) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('AlloIA: Exception getting product count from API: ' . $e->getMessage());
+            }
+            return null;
+        }
     }
     
     /**

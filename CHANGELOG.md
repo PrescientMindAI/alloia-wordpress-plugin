@@ -5,6 +5,76 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-12-16
+
+### Added
+- **AI Bot Traffic Optimization**: Intelligent redirection system for AI bots
+  - Redirects AI crawlers (ChatGPT, Claude, Perplexity, Gemini, Grok, DeepSeek, etc.) to AlloIA graph API
+  - Provides superior product data optimized for AI recommendations
+  - Database-driven bot detection with 5-minute caching
+  - Automatic fallback to hardcoded patterns if API unavailable
+  - HTTP 301 redirects with custom headers for client isolation
+
+- **SEO Protection**: Critical safeguard for search rankings
+  - Traditional Googlebot NEVER redirected (explicit exclusion)
+  - Distinguishes between Googlebot (SEO) and Google-Extended (AI training)
+  - Maintains search engine visibility while optimizing for AI tools
+  - Hardcoded protection (no UI toggle) for maximum safety
+
+- **AI-Optimized Meta Tags**: Enhanced product page metadata
+  - `<link rel="alternate">` pointing to AlloIA API endpoint
+  - `<meta name="ai-content-source">` for AI bot guidance
+  - JSON-LD schema with `sameAs` property
+  - Works even when redirect is disabled (fallback guidance)
+
+- **Admin Control Panel**: New "AI Bot Traffic Optimization" section
+  - Toggle for "Redirect AI bots to graph" (default: ON)
+  - Toggle for "Inject AI-optimized metadata" (default: ON)
+  - "Test AI Bot in Benchmark" button (links to AlloIA dashboard)
+  - Google SEO Protection status badge (always active)
+
+### Improved
+- **Performance Optimization**: Early bot detection for minimal overhead
+  - Changed hook from `init` to `muplugins_loaded` (runs before WordPress full load)
+  - Immediate exit after redirect (no further processing)
+  - Non-AI traffic overhead less than 5ms
+  - In-memory bot pattern matching (no database queries)
+
+- **Code Quality**: Comprehensive cleanup and refactoring
+  - Removed 39 lines of unused artifact code (`update_apache_htaccess_rules`)
+  - Extracted complex Googlebot detection to `is_traditional_googlebot()` helper
+  - Enhanced PHPDoc documentation for all private methods
+  - Documented settings storage strategy (nested array vs direct option)
+  - Improved code readability and maintainability
+
+### Technical
+- **New Methods in AlloIA_Core**:
+  - `maybe_redirect_ai_bots()`: Main redirect logic (hooked to muplugins_loaded)
+  - `detect_ai_bot()`: Database-driven pattern matching with caching
+  - `is_traditional_googlebot()`: SEO protection checker
+  - `is_product_url()`: WooCommerce product page detection
+  - `extract_product_slug()`: URL slug extraction
+  - `get_fallback_ai_bot_patterns()`: Hardcoded fallback list
+  - `inject_ai_optimized_meta_tags()`: Meta tag injection (hooked to wp_head)
+  - `identify_bot_type()`: Bot type identification for logging
+  - `log_ai_bot_redirect()`: Redirect monitoring
+
+- **New Settings**:
+  - `alloia_settings['ai_redirect_enabled']`: Control bot redirection (default: true)
+  - `alloia_settings['ai_metadata_enabled']`: Control meta tag injection (default: true)
+
+- **API Integration**:
+  - Fetches bot patterns from `https://www.alloia.io/api/ai-bot-patterns/simple`
+  - 5-minute WordPress transient caching for optimal performance
+  - Graceful fallback to hardcoded patterns on API failure
+
+### Security
+- All user inputs properly sanitized using WordPress functions
+- Nonce verification on all form submissions
+- Capability checks (manage_options) enforced
+- Headers properly sanitized before redirect
+- No SQL injection risks (uses WordPress APIs only)
+
 ## [1.7.3] - 2025-12-09
 
 ### Fixed

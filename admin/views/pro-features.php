@@ -97,6 +97,105 @@ if ($product_count <= 1000) {
         </div>
     </div>
 
+    <!-- AI Bot Traffic Optimization Section -->
+    <div class="alloia-card alloia-setting-group" style="margin-top:20px;">
+        <h3>🤖 <?php esc_html_e('AI Bot Traffic Optimization', 'alloia-woocommerce'); ?></h3>
+        <p class="description">
+            <?php esc_html_e('Direct AI tools (ChatGPT, Claude, Perplexity) to your AI-optimized product data for better recommendations and increased sales.', 'alloia-woocommerce'); ?>
+        </p>
+        
+        <div class="alloia-info-box" style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 12px 16px; margin: 16px 0;">
+            <strong><?php esc_html_e('How It Works:', 'alloia-woocommerce'); ?></strong>
+            <ul style="margin-left: 20px;">
+                <li>✅ <?php esc_html_e('AI bots are redirected to your AlloIA Commerce platform', 'alloia-woocommerce'); ?></li>
+                <li>✅ <?php esc_html_e('Your human customers stay on your WooCommerce site', 'alloia-woocommerce'); ?></li>
+                <li>✅ <?php esc_html_e('Google SEO is always protected (Googlebot never redirected)', 'alloia-woocommerce'); ?></li>
+                <li>✅ <?php esc_html_e('Better AI recommendations = more sales', 'alloia-woocommerce'); ?></li>
+            </ul>
+        </div>
+        
+        <form method="post" action="">
+            <?php wp_nonce_field('alloia_ai_bot_settings', 'alloia_ai_bot_nonce'); ?>
+            
+            <table class="form-table">
+                <tr>
+                    <th scope="row">
+                        <label for="ai_redirect_enabled"><?php esc_html_e('AI Bot Redirection', 'alloia-woocommerce'); ?></label>
+                    </th>
+                    <td>
+                        <label>
+                            <input type="checkbox" 
+                                   name="alloia_settings[ai_redirect_enabled]" 
+                                   id="ai_redirect_enabled"
+                                   value="1"
+                                   <?php 
+                                   $options = get_option('alloia_settings', array());
+                                   checked(isset($options['ai_redirect_enabled']) ? $options['ai_redirect_enabled'] : true); 
+                                   ?>>
+                            <?php esc_html_e('Redirect AI bots to graph API', 'alloia-woocommerce'); ?>
+                        </label>
+                        <p class="description">
+                            <?php esc_html_e('When enabled, AI bots (ChatGPT, Claude, etc.) are automatically redirected to your AI-optimized product data.', 'alloia-woocommerce'); ?>
+                        </p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">
+                        <label for="ai_metadata_enabled"><?php esc_html_e('AI-Optimized Metadata', 'alloia-woocommerce'); ?></label>
+                    </th>
+                    <td>
+                        <label>
+                            <input type="checkbox" 
+                                   name="alloia_settings[ai_metadata_enabled]" 
+                                   id="ai_metadata_enabled"
+                                   value="1"
+                                   <?php 
+                                   checked(isset($options['ai_metadata_enabled']) ? $options['ai_metadata_enabled'] : true); 
+                                   ?>>
+                            <?php esc_html_e('Inject AI-optimized metadata on product pages', 'alloia-woocommerce'); ?>
+                        </label>
+                        <p class="description">
+                            <?php esc_html_e('Adds structured data and meta tags to guide AI bots to your graph data. Works as fallback even if redirection is disabled.', 'alloia-woocommerce'); ?>
+                        </p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">
+                        <?php esc_html_e('Google SEO Protection', 'alloia-woocommerce'); ?>
+                    </th>
+                    <td>
+                        <p class="alloia-info-badge" style="background: #dcfce7; border-left: 4px solid #22c55e; padding: 8px 12px; margin: 8px 0;">
+                            ✅ <strong><?php esc_html_e('Always Active', 'alloia-woocommerce'); ?></strong> - <?php esc_html_e('Traditional Googlebot (SEO crawler) is never redirected to protect your search rankings. Google-Extended (AI training) IS redirected.', 'alloia-woocommerce'); ?>
+                        </p>
+                        <p class="description">
+                            <?php esc_html_e('Google uses different bots for SEO and AI features. We ensure your search rankings are protected while optimizing for AI tools.', 'alloia-woocommerce'); ?>
+                        </p>
+                    </td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">
+                        <?php esc_html_e('Test AI Bot Detection', 'alloia-woocommerce'); ?>
+                    </th>
+                    <td>
+                        <a href="https://alloia.ai/dashboard/subscriptions" target="_blank" class="button button-secondary">
+                            <?php esc_html_e('Test AI Bot in Benchmark', 'alloia-woocommerce'); ?>
+                        </a>
+                        <p class="description">
+                            <?php esc_html_e('Run a comprehensive test to verify AI bot detection and redirection is working correctly.', 'alloia-woocommerce'); ?>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            
+            <p class="submit">
+                <input type="submit" name="save_ai_bot_settings" class="button button-primary" value="<?php esc_attr_e('Save AI Bot Settings', 'alloia-woocommerce'); ?>">
+            </p>
+        </form>
+    </div>
+
     <!-- Product Sync Section -->
     <?php
     $domain_validation = isset($data['domain_validation']) ? $data['domain_validation'] : null;
@@ -170,8 +269,19 @@ if ($product_count <= 1000) {
         <?php else: ?>
             <div style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 12px 16px; margin: 15px 0; display: inline-block;">
                 <span style="font-size: 16px; color: #646970;">
-                    <strong style="color: #0073aa;"><?php echo esc_html($export_stats['total_exported']); ?> products synced</strong> / <?php echo esc_html($total_products); ?> products in store
+                    <strong style="color: #0073aa;"><?php echo esc_html($export_stats['total_exported']); ?> graph entries</strong> / <?php echo esc_html($total_products); ?> products in store
+                    <?php if (isset($export_stats['source'])): ?>
+                        <span style="font-size: 12px; color: #999;">
+                            (<?php echo $export_stats['source'] === 'api' ? '✓ from AlloIA Graph' : '⚠ local count'; ?>)
+                        </span>
+                    <?php endif; ?>
                 </span>
+                <?php if ($export_stats['total_exported'] > $total_products): ?>
+                    <br>
+                    <span style="font-size: 12px; color: #f59e0b; margin-top: 4px; display: inline-block;">
+                        ℹ️ <?php esc_html_e('Graph count includes product variations (parent + all variants)', 'alloia-woocommerce'); ?>
+                    </span>
+                <?php endif; ?>
             </div>
             
             <div style="margin-top: 15px;">
@@ -184,8 +294,30 @@ if ($product_count <= 1000) {
             <?php if ($export_stats['last_export']): ?>
                 <p style="margin-top: 10px; color: #646970; font-size: 14px;">
                     <?php printf(esc_html__('Last sync: %s', 'alloia-woocommerce'), esc_html($export_stats['last_export'])); ?>
+                    <?php if (!empty($export_stats['last_export_id'])): ?>
+                        <span style="margin-left: 8px;">
+                            | Sync ID: <code style="background: #f0f0f1; padding: 2px 6px; border-radius: 3px; font-size: 11px;"><?php echo esc_html($export_stats['last_export_id']); ?></code>
+                        </span>
+                    <?php endif; ?>
                 </p>
             <?php endif; ?>
+            
+            <div class="alloia-info-box" style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 12px 16px; margin: 16px 0;">
+                <strong>ℹ️ <?php esc_html_e('Auto-Sync Enabled:', 'alloia-woocommerce'); ?></strong>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #555;">
+                    <?php esc_html_e('Products automatically sync to AlloIA Graph when you create or update them in WooCommerce. Manual sync is only needed for bulk updates or initial setup.', 'alloia-woocommerce'); ?>
+                </p>
+            </div>
+            
+            <div class="alloia-info-box" style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; margin: 16px 0;">
+                <strong>📊 <?php esc_html_e('Product Variations in Graph:', 'alloia-woocommerce'); ?></strong>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #555;">
+                    <?php esc_html_e('Variable products with variations (e.g., different sizes or colors) generate separate entries in the AlloIA Graph - one for the parent product and one for each variation. This means your graph count may be higher than your WooCommerce product count.', 'alloia-woocommerce'); ?>
+                </p>
+                <p style="margin: 8px 0 0; font-size: 13px; color: #666; font-style: italic;">
+                    <?php esc_html_e('Example: 1 T-shirt with 3 sizes (S, M, L) = 4 graph entries (1 parent + 3 variations)', 'alloia-woocommerce'); ?>
+                </p>
+            </div>
         <?php endif; ?>
     </div>
 </div>
@@ -467,22 +599,43 @@ jQuery(document).ready(function($) {
                     // Build detailed status message
                     var statusHtml = '<div style="background: #f0f8ff; border: 1px solid #0073aa; border-radius: 4px; padding: 15px; margin-top: 10px;">';
                     statusHtml += '<strong style="color: #46b450;">✓ ' + (response.data.message || 'Sync completed!') + '</strong><br>';
-                    statusHtml += '<strong>Total Products:</strong> ' + (response.data.total_products || 0) + '<br>';
-                    statusHtml += '<strong>Export ID:</strong> ' + (response.data.export_id || 'N/A') + '<br>';
-                    statusHtml += '<strong>Status:</strong> ' + (response.data.success ? 'SUCCESS' : 'UNKNOWN') + '<br>';
                     
-                    if (response.data.detailed_message) {
-                        statusHtml += '<strong>Details:</strong> ' + response.data.detailed_message + '<br>';
+                    // Show products synced (from the sync operation)
+                    var productsProcessed = response.data.total_products || response.data.total_count || 0;
+                    var productsSuccess = response.data.exported_count || 0;
+                    statusHtml += '<strong>Products Processed:</strong> ' + productsProcessed + '<br>';
+                    statusHtml += '<strong>Successfully Synced:</strong> ' + productsSuccess + '<br>';
+                    
+                    // Show export ID if available
+                    if (response.data.export_id && response.data.export_id !== 'N/A') {
+                        statusHtml += '<strong>Sync ID:</strong> <code style="background: #f0f0f1; padding: 2px 6px; border-radius: 3px;">' + response.data.export_id + '</code><br>';
                     }
                     
-                    // Debug sections removed for production - see git history if needed
+                    // Show current stats from graph (if available)
+                    if (response.data.updated_stats && response.data.updated_stats.total_exported) {
+                        var source = response.data.updated_stats.source || 'local';
+                        var sourceLabel = source === 'api' ? ' (from AlloIA Graph)' : ' (local count)';
+                        statusHtml += '<strong>Total Graph Entries:</strong> ' + response.data.updated_stats.total_exported + sourceLabel;
+                        
+                        // Add note if graph count seems higher (includes variations)
+                        if (response.data.updated_stats.total_exported > productsProcessed) {
+                            statusHtml += ' <span style="font-size: 11px; color: #f59e0b;">ℹ️ includes variations</span>';
+                        }
+                        statusHtml += '<br>';
+                    }
+                    
+                    statusHtml += '<strong>Status:</strong> ' + (response.data.success ? 'SUCCESS' : 'PARTIAL') + '<br>';
+                    
+                    if (response.data.detailed_message) {
+                        statusHtml += '<p style="margin-top: 10px; font-size: 13px; color: #666;">' + response.data.detailed_message + '</p>';
+                    }
                     
                     statusHtml += '</div>';
                     $status.html(statusHtml);
                     $button.prop('disabled', false).text(originalText);
                     
                     // Reload page after 3 seconds to show updated stats
-                    if (response.data.exported_count > 0) {
+                    if (productsSuccess > 0) {
                         setTimeout(function() {
                             window.location.reload();
                         }, 3000);

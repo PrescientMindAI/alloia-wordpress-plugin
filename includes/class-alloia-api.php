@@ -840,4 +840,70 @@ class AlloIA_API {
         
         return $results;
     }
+    
+    /**
+     * Get synced products count from AlloIA Knowledge Graph
+     * 
+     * Queries the AlloIA API to get the actual count of products synced to the knowledge graph
+     * for a specific client
+     * 
+     * @param string $client_id The client ID to query
+     * @return array Response with product count
+     * @throws Exception On API error
+     */
+    public function get_products_count($client_id) {
+        if (empty($client_id)) {
+            throw new Exception('Client ID is required to get products count');
+        }
+        
+        try {
+            // Query the knowledge graph for product count
+            // This endpoint should return the count of products in the graph for this client
+            $response = $this->make_request(
+                '/graph/products/count',
+                'GET',
+                array('client_id' => $client_id),
+                array('X-Platform' => 'woocommerce')
+            );
+            
+            // If the endpoint doesn't exist yet, try alternative approach
+            if (!isset($response['count'])) {
+                // Try getting all products and count them (less efficient but works as fallback)
+                $products_response = $this->make_request(
+                    '/graph/products',
+                    'GET',
+                    array('client_id' => $client_id, 'limit' => 1),
+                    array('X-Platform' => 'woocommerce')
+                );
+                
+                if (isset($products_response['total'])) {
+                    return array(
+                        'success' => true,
+                        'count' => $products_response['total'],
+                        'client_id' => $client_id
+                    );
+                }
+            }
+            
+            return array(
+                'success' => true,
+                'count' => isset($response['count']) ? intval($response['count']) : 0,
+                'client_id' => $client_id
+            );
+            
+        } catch (Exception $e) {
+            // If endpoint doesn't exist, return 0 with a note
+            if (strpos($e->getMessage(), 'Endpoint not found') !== false || 
+                strpos($e->getMessage(), '404') !== false) {
+                return array(
+                    'success' => false,
+                    'count' => 0,
+                    'error' => 'Product count endpoint not available',
+                    'note' => 'Using local count as fallback'
+                );
+            }
+            
+            throw $e;
+        }
+    }
 }
