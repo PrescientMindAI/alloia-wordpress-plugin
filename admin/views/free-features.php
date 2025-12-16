@@ -52,6 +52,7 @@ if (!defined('ABSPATH')) {
             </div>
         </div>
 
+        <!-- 
              Issue: Double slashes (//) in generated URLs
              Status: Investigating root cause before enabling
              Priority: Low (AI Sitemap feature is higher priority)
