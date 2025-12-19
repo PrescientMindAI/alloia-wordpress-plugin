@@ -248,7 +248,19 @@ class AlloIA_Plugin_Updater {
      */
     public function clear_cache($upgrader, $hook_extra) {
         if (isset($hook_extra['plugin']) && $hook_extra['plugin'] === $this->plugin_basename) {
+            // Clear our GitHub API cache
             delete_transient($this->cache_key);
+            
+            // CRITICAL: Also clear WordPress update_plugins transient
+            // This fixes the issue where update notification persists after successful update
+            delete_site_transient('update_plugins');
+            
+            // Force WordPress to re-check for updates on next page load
+            wp_clean_plugins_cache();
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('AlloIA Updater: Cleared all update caches after successful plugin update');
+            }
         }
     }
 }
