@@ -256,6 +256,7 @@ class AlloIA_Knowledge_Graph_Exporter {
                 'updatedAt' => $wc_product->get_date_modified()->format('c'),
                 'woocommerce_id' => $product_id,
                 'permalink' => get_permalink($product_id),
+                'slug' => $this->extract_url_slug($product_id),
                 'product_type' => $product_type
             )
         );
@@ -281,6 +282,31 @@ class AlloIA_Knowledge_Graph_Exporter {
         }
         
         return $node;
+    }
+    
+    /**
+     * Extract URL slug from product permalink
+     * 
+     * @param int $product_id Product ID
+     * @return string Product URL slug
+     */
+    private function extract_url_slug($product_id) {
+        $permalink = get_permalink($product_id);
+        if (!$permalink) {
+            return '';
+        }
+        
+        // Parse URL and get the path
+        $path = parse_url($permalink, PHP_URL_PATH);
+        if (!$path) {
+            return '';
+        }
+        
+        // Remove trailing slash and get the last segment (the slug)
+        $path = rtrim($path, '/');
+        $slug = basename($path);
+        
+        return $slug;
     }
     
     /**

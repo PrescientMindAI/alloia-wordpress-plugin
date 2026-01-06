@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 # Plugin details
 $PLUGIN_NAME = "alloia-woocommerce-plugin"
 $PLUGIN_DIR = $PSScriptRoot
-$VERSION = "1.9.0"
+$VERSION = "1.9.2"
 
 Write-Host "Building AlloIA WordPress Plugin v${VERSION}..." -ForegroundColor Cyan
 

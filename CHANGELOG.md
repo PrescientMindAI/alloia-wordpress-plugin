@@ -5,6 +5,30 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.2] - 2026-01-06
+
+### Fixed
+- **CRITICAL: Product Slug Storage**: Plugin now extracts and stores URL slug for reliable API lookups
+  - Added `slug` field to product data export
+  - Extracts slug from product permalink (e.g., "blue-umbrella" from "/collection/blue-umbrella/")
+  - Enables AlloIA API to match products by their actual URL handle instead of numeric ID
+  - Fixes AI bot redirect failures when API can't find products by slug
+  
+### Changed
+- Enhanced `convert_product_to_node()` to include slug extraction via new `extract_url_slug()` method
+- Product export now includes: woocommerce_id (numeric), permalink (full URL), and slug (URL handle)
+  
+### Technical
+- New `extract_url_slug()` private method safely extracts slug from permalinks
+- Works with all WooCommerce permalink structures
+- Slug extraction uses `parse_url()` and `basename()` for reliability
+- Falls back to empty string if permalink unavailable
+
+### Impact
+- Fixes product lookup failures in AlloIA knowledge graph
+- Ensures AI bot redirects work reliably across all WooCommerce configurations
+- Improves product sync reliability between WordPress and AlloIA API
+
 ## [1.9.1] - 2025-12-19
 
 ### Fixed
