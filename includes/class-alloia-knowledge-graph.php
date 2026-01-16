@@ -732,6 +732,10 @@ class AlloIA_Knowledge_Graph_Exporter {
             $product_data['permalink'] = $properties['permalink'];
         }
         
+        if (!empty($properties['slug'])) {
+            $product_data['slug'] = $properties['slug'];
+        }
+        
         if (!empty($properties['stock_quantity'])) {
             $product_data['stock_quantity'] = $properties['stock_quantity'];
         }
