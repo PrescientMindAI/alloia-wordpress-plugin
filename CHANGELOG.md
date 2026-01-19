@@ -5,6 +5,31 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.3] - 2026-01-19
+
+### Fixed
+- **Product Permalink Storage**: Added full permalink URL to product data synced to AlloIA graph
+  - Plugin now stores both `permalink` (full URL) and `slug` (URL handle) in knowledge graph
+  - Enables complete product reference and lookup capabilities
+  - Ensures permalink is available for AI bot redirect logic and analytics
+  
+### Changed
+- Modified `prepare_product_data()` to include `permalink` in API payload
+- Enhanced AlloIA API to store `permalink` in product database `properties` column
+- Updated product mapping to retrieve permalink from stored properties
+  
+### Technical
+- Product data now includes three identifiers: `woocommerce_id`, `permalink`, `slug`
+- Permalink stored in PostgreSQL JSONB `properties` column alongside slug
+- Both fields included in create and update operations
+- Proper extraction and mapping when reading products from database
+
+### Impact
+- Provides complete product URL reference in knowledge graph
+- Enables reliable product identification via any of the three methods
+- Required for comprehensive AI bot redirect and analytics tracking
+- Improves data integrity for future features
+
 ## [1.9.2] - 2026-01-06
 
 ### Fixed
