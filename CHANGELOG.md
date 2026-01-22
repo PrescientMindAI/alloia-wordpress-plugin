@@ -5,6 +5,72 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-01-20
+
+### Added 🆕
+- **Domain Verification System**: New 3-tier verification system for enhanced security
+  - **Tier 1 (Pending)**: New accounts must verify email before product sync
+  - **Tier 2 (Email Verified)**: Products sync to private namespace after email verification
+  - **Tier 3 (Fully Validated)**: Products visible in global AI search after DNS verification
+  - 6-digit email verification codes (15-minute expiry)
+  - Rate limiting: 3 verification emails per hour per account
+  - Privacy-first design: Email addresses NOT stored (GDPR compliant)
+
+- **Enhanced Error Messages**: Clear, actionable error messages for administrators
+  - `DOMAIN_MISMATCH`: Plugin domain doesn't match registered domain
+  - `EMAIL_NOT_VERIFIED`: Email verification required before product sync
+  - User-friendly WordPress admin notices with dashboard links
+  - Step-by-step troubleshooting guidance
+
+- **Automatic Domain Detection**: Plugin automatically extracts domain from WordPress `home_url()`
+  - No manual domain configuration required
+  - Supports www., protocol, and subdomain variations
+  - Case-insensitive domain matching
+
+### Changed 🔄
+- **Product Sync Enforcement**: Product sync now requires email verification (minimum)
+  - Existing clients (pre-January 2026) automatically upgraded to "fully validated" status
+  - New clients must complete email verification before first sync
+  - Old plugin versions supported for 30-day backward compatibility period
+
+- **Domain Validation**: Simplified domain validation logic (API-side enforcement)
+  - Removed client-side domain validation code
+  - API now handles all domain mismatch detection
+  - Cleaner plugin code with better error handling
+
+### Security 🛡️
+- **Domain Security**: Prevents unauthorized product sync from mismatched domains
+- **Email Privacy**: Verification emails not stored in database (timestamp only)
+- **Rate Limiting**: Prevents verification email abuse (3/hour per account)
+- **Code Security**: 6-digit codes are bcrypt-hashed in database, expire after 15 minutes
+
+### Migration 📦
+- **Automatic Migration**: Existing clients (with `domain_validation_status = 'verified'`) automatically migrated to `domain_verification_tier = 'fully_validated'`
+- **Zero Downtime**: No action required from existing users
+- **Product Availability**: All products remain accessible after migration
+- **Backward Compatibility**: Old plugin versions continue to work for 30 days
+
+### Documentation 📚
+- Added Domain Verification troubleshooting section to README
+- Created comprehensive Domain Verification Guide
+- Updated API contract documentation
+- Added FAQ: "Why don't you store my email?"
+
+### Breaking Changes ⚠️
+- **New Users**: Email verification now required before product sync (was optional)
+- **API Changes**: New error codes `DOMAIN_MISMATCH` and `EMAIL_NOT_VERIFIED`
+- **WordPress Admin**: New error notices displayed when verification issues occur
+
+### Upgrade Notes
+- **Existing Users**: No action required - automatically migrated to "fully validated"
+- **New Users**: Must complete email verification in AlloIA dashboard before first sync
+- **Old Plugin Versions**: Will continue to work until February 20, 2026
+
+### Support
+- Domain Verification Guide: https://docs.alloia.ai/guides/domain-verification-guide
+- API Documentation: https://docs.alloia.ai/api-contracts/domain-verification-api
+- Support Email: support@alloia.ai
+
 ## [1.9.3] - 2026-01-19
 
 ### Fixed

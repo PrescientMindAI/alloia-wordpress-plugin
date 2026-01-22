@@ -64,7 +64,46 @@ This plug-in allow optimisation to be more present in AI recommendations. It pro
 
 1. **Get API Key**: Visit [AlloIA.ai](https://alloia.ai) to subscribe and get your API key
 2. **Enter API Key**: Go to **AlloIA → Settings → Pro** tab and enter your API key
-3. **Access Pro Features**: Once activated, you'll have access to Knowledge Graph, Analytics, and more
+3. **Verify Your Domain**: Complete domain verification (see below)
+4. **Access Pro Features**: Once activated, you'll have access to Knowledge Graph, Analytics, and more
+
+### Domain Verification (Required for Pro Features)
+
+Starting January 2026, domain verification is required to sync products to the AI knowledge graph.
+
+#### Quick Start
+
+1. **Log in** to your [AlloIA dashboard](https://alloia.ai/dashboard)
+2. **Navigate** to Domain Settings
+3. **Enter your domain** (e.g., `yourshop.com`)
+4. **Click "Send Verification Code"**
+5. **Enter your email** to receive a 6-digit code
+6. **Enter the code** in the dashboard
+7. **Done!** Your plugin can now sync products
+
+#### Verification Status
+
+Your domain can be in one of three states:
+
+- **🟡 Pending**: Email not verified - products cannot sync
+- **🟢 Email Verified**: Products sync to private namespace only
+- **🔵 Fully Validated**: Products visible in global AI search (requires DNS verification)
+
+#### Troubleshooting
+
+**"Domain mismatch" error in WordPress admin:**
+- Verify your domain in the AlloIA dashboard matches your WordPress site URL
+- Don't include `www.` or `https://` - just the domain (e.g., `yourshop.com`)
+- Update your domain if you changed your site URL
+
+**"Email not verified" error:**
+- Complete email verification in the [AlloIA dashboard](https://alloia.ai/dashboard)
+- Check your verification status
+- If verified, deactivate and reactivate the plugin
+
+**Still having issues?**
+- See our [Domain Verification Guide](https://docs.alloia.ai/guides/domain-verification-guide)
+- Contact [support@alloia.ai](mailto:support@alloia.ai)
 
 ## Usage
 
@@ -117,7 +156,15 @@ The plugin integrates with AlloIA's AI services through:
 
 ## Changelog
 
-### Version 1.0.1 (Latest)
+### Version 1.8.0 (January 2026) - Latest
+- **✨ New: Domain Verification**: Added email verification requirement for product sync
+- **✨ Enhanced Error Handling**: Clear error messages for domain mismatch and verification issues
+- **✨ Privacy First**: Email addresses not stored (GDPR compliant)
+- **🛡️ Security**: Domain validation prevents unauthorized product sync
+- **🔄 Backward Compatibility**: Existing users automatically upgraded to "fully validated" status
+- **📚 Documentation**: Added troubleshooting guide for verification issues
+
+### Version 1.0.1
 - **Security fixes**: XSS, SQL injection, and CSRF protection
 - **Performance improvements**: Database query optimization with pagination
 - **Error handling**: Enhanced error management and user feedback

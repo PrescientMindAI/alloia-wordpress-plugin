@@ -52,15 +52,14 @@ class AlloIA_Knowledge_Graph_Exporter {
         
         if (!$domain_validation['valid']) {
             $error_message = isset($domain_validation['error']) ? $domain_validation['error'] : 'Domain validation failed';
+            $dashboard_url = 'https://alloia.io/dashboard/domain-settings';
             
-            // Provide detailed error based on what check failed
-            $checks = $domain_validation['checks'] ?? array();
-            if (!($checks['api_key_valid'] ?? false)) {
-                $error_message = 'Invalid API key. Please check your AlloIA API key in settings.';
-            } elseif (!($checks['domain_associated'] ?? false)) {
-                $error_message = 'This domain is not associated with your AlloIA account. Please add it in your AlloIA dashboard.';
-            } elseif (!($checks['domain_validated'] ?? false)) {
-                $error_message = 'This domain is not validated. Please complete domain validation in your AlloIA dashboard.';
+            // Story 1.2 (AC #7): User-friendly error messages with dashboard links
+            if (strpos($error_message, 'Invalid API key') !== false) {
+                $error_message = 'Invalid API key. Please check your AlloIA API key in plugin settings.';
+            } else {
+                // Default domain validation error with dashboard link
+                $error_message = 'Domain validation required. Please verify your domain in the AlloIA dashboard: ' . $dashboard_url;
             }
             
             throw new Exception($error_message);
@@ -662,13 +661,38 @@ class AlloIA_Knowledge_Graph_Exporter {
         } catch (Exception $e) {
             // Entire batch failed
             $failed_count = count($batch);
-            $errors[] = 'Batch export failed: ' . $e->getMessage();
+            $error_message = $e->getMessage();
+            
+            // Story 1.2 (AC #7): Handle new API error codes with user-friendly messages
+            $dashboard_url = 'https://alloia.io/dashboard/domain-settings';
+            
+            // Check for domain mismatch error (AC #7)
+            if (strpos($error_message, 'DOMAIN_MISMATCH') !== false || 
+                strpos($error_message, 'Domain mismatch') !== false ||
+                strpos($error_message, 'domain does not match') !== false) {
+                $error_message = 'Domain mismatch: Your WordPress domain doesn\'t match the domain registered in your AlloIA account. ' .
+                                'Please verify your domain in the AlloIA dashboard: ' . $dashboard_url;
+            }
+            // Check for email not verified error (AC #7)
+            elseif (strpos($error_message, 'EMAIL_NOT_VERIFIED') !== false || 
+                    strpos($error_message, 'Email verification required') !== false ||
+                    strpos($error_message, 'domain not verified') !== false) {
+                $error_message = 'Email verification required: Please verify your domain email address in the AlloIA dashboard to sync products. ' .
+                                'Visit: ' . $dashboard_url;
+            }
+            // Check for domain not set error
+            elseif (strpos($error_message, 'DOMAIN_NOT_SET') !== false) {
+                $error_message = 'Domain not configured: Please set up your domain in the AlloIA dashboard first. ' .
+                                'Visit: ' . $dashboard_url;
+            }
+            
+            $errors[] = 'Batch export failed: ' . $error_message;
             
             // Update all products in batch as failed
             foreach ($batch as $node) {
                 $woocommerce_id = $node['properties']['woocommerce_id'];
                 update_post_meta($woocommerce_id, '_alloia_export_status', 'failed');
-                update_post_meta($woocommerce_id, '_alloia_export_error', $e->getMessage());
+                update_post_meta($woocommerce_id, '_alloia_export_error', $error_message);
             }
         }
         

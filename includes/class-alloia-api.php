@@ -213,55 +213,38 @@ class AlloIA_API {
     }
     
     /**
-     * Validate domain for Knowledge Graph sync
-     * 
-     * EMERGENCY HOTFIX (2025-12-05): Domain validation temporarily bypassed
-     * - Only validates API key
-     * - Domain ownership/validation must be verified manually in client portal
-     * - Technical debt tracked in story: HOTFIX-2025-12-05
+     * Extract domain from WordPress site and validate API key
+     * Story 1.2 (AC #7): Simplified - API enforces all domain validation
      * 
      * @param string $domain Optional domain to validate (defaults to current site domain)
-     * @return array Validation result with 'valid' boolean and details
+     * @return array Validation result with 'valid' boolean, 'domain' string, and 'error' if invalid
      * @throws Exception On API failure
      */
     public function validate_domain_for_sync($domain = null) {
         try {
-            // Step 1: Validate API key only
+            // Step 1: Validate API key
             $client_data = $this->validate_api_key();
-            
-            // HOTFIX DEBUG: Log what we got from validate_api_key
-            error_log("HOTFIX DEBUG: validate_api_key returned: " . json_encode($client_data));
             
             // Convert to boolean explicitly (API may return integers 0/1)
             $success = isset($client_data['success']) ? (bool)$client_data['success'] : false;
             $valid = isset($client_data['valid']) ? (bool)$client_data['valid'] : false;
             
-            error_log("HOTFIX DEBUG: success=$success, valid=$valid");
-            
             if (!$success || !$valid) {
-                error_log("HOTFIX DEBUG: API key validation FAILED - returning false");
                 return array(
                     'valid' => false,
                     'error' => isset($client_data['error']['message']) 
                         ? $client_data['error']['message'] 
                         : 'Invalid API key',
-                    'domain' => $domain,
-                    'checks' => array(
-                        'api_key_valid' => false,
-                        'domain_associated' => false,
-                        'domain_validated' => false
-                    )
+                    'domain' => $domain
                 );
             }
             
-            error_log("HOTFIX DEBUG: API key validation PASSED - will bypass domain checks");
-            
-            // Step 2: Extract domain for logging/tracking
+            // Step 2: Extract domain from WordPress home URL (AC #7)
             if (empty($domain)) {
                 $home_url = home_url();
                 $domain = wp_parse_url($home_url, PHP_URL_HOST);
                 
-                // Fallback: if wp_parse_url fails, try again
+                // Fallback: if wp_parse_url fails
                 if (empty($domain) && !empty($home_url)) {
                     $parsed = wp_parse_url($home_url);
                     $domain = isset($parsed['host']) ? $parsed['host'] : '';
@@ -270,37 +253,26 @@ class AlloIA_API {
             
             $domain = trim($domain);
             if (empty($domain)) {
-                $domain = 'unknown';
+                return array(
+                    'valid' => false,
+                    'error' => 'Could not determine site domain',
+                    'domain' => null
+                );
             }
             
-            // Step 3: EMERGENCY BYPASS - Trust API key holder
-            // Domain validation will be handled manually in client portal
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("AlloIA Domain Validation BYPASS - Domain: $domain, Client ID: " . $client_data['client']['id']);
-            }
-            
+            // Step 3: Return domain and client info
+            // API will enforce domain validation during product sync (AC #7)
             return array(
                 'valid' => true,
                 'domain' => $domain,
-                'client_id' => $client_data['client']['id'],
-                'checks' => array(
-                    'api_key_valid' => true,
-                    'domain_associated' => true,  // Bypassed
-                    'domain_validated' => true     // Bypassed
-                ),
-                'bypass_notice' => '⚠️ Domain validation bypassed - Manual verification required in client portal'
+                'client_id' => $client_data['client']['id']
             );
             
         } catch (Exception $e) {
             return array(
                 'valid' => false,
                 'error' => 'API validation failed: ' . $e->getMessage(),
-                'domain' => $domain ?? 'unknown',
-                'checks' => array(
-                    'api_key_valid' => false,
-                    'domain_associated' => false,
-                    'domain_validated' => false
-                )
+                'domain' => $domain ?? 'unknown'
             );
         }
     }
