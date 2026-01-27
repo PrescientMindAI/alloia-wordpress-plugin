@@ -700,20 +700,23 @@ class AlloIA_Core {
             return; // Couldn't determine product slug
         }
         
-        // Build AlloIA API URL
-        // Use product slug (URL handle) not SKU
-        $graph_url = sprintf(
-            'https://www.alloia.io/product/%s',
-            urlencode($product_slug)
-        );
-        
-        // Get client domain for headers
+        // Get client domain for headers and query parameter
         $original_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
+        
+        // Build AlloIA API URL with domain query parameter
+        // Query parameter ensures domain is passed even if headers aren't forwarded by AI bots
+        $graph_url = sprintf(
+            'https://www.alloia.io/product/%s?domain=%s',
+            urlencode($product_slug),
+            urlencode($original_host)
+        );
         
         // Log redirect for monitoring
         $this->log_ai_bot_redirect($user_agent, $request_uri, $graph_url);
         
         // Perform 301 redirect with headers
+        // Note: Custom headers may not be forwarded by AI bots following redirects,
+        // but query parameter provides guaranteed fallback
         header("Location: $graph_url", true, 301);
         header("X-Original-Host: $original_host");
         header("X-Original-Path: $request_uri");

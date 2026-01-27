@@ -5,6 +5,22 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-01-27
+
+### Fixed 🐛
+- **AI Bot Redirect Enhancement**: Fixed "Direct access detected" errors for AI bot redirects
+  - Added `?domain=` query parameter to AI bot redirect URLs
+  - Ensures domain information reaches AlloIA API even when custom headers aren't forwarded by bots
+  - Provides guaranteed fallback when `X-Original-Host` headers are lost during HTTP redirects
+  - Resolves issue with Amazonbot, GPTBot, ClaudeBot, and other AI crawlers
+  - Technical: WordPress plugin now sends `https://www.alloia.io/product/slug?domain=client-site.com`
+
+### Technical Details 🔧
+- **Problem**: HTTP 301 redirects don't forward custom headers (`X-Original-Host`) to the new location
+- **Solution**: Added domain as URL query parameter, which is guaranteed to reach the API
+- **Impact**: All AI bot redirects now work reliably without requiring infrastructure changes
+- **Compatibility**: AlloIA API updated with flexible domain extraction (5 fallback methods)
+
 ## [2.0.0] - 2026-01-20
 
 ### Added 🆕
