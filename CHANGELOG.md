@@ -5,6 +5,27 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2026-01-29
+
+### Added 🆕
+- **Product Variant Support**: WooCommerce variable products now sync with all variants
+  - Variant data (SKU, price, attributes, images) sent to AlloIA Knowledge Graph
+  - Multi-size, multi-color, and custom attribute variations fully supported
+  - Price ranges calculated automatically for variable products
+  - Variant-specific images and inventory included in sync
+
+### Fixed 🐛
+- **Missing Variants in Knowledge Graph**: Resolved issue where variable product variants were not appearing in AlloIA JSON output
+  - Plugin now sends complete `variants[]` array to API
+  - Added `has_variations`, `variation_count`, and `price_range` metadata
+  - Compatible with API commit 795380e for end-to-end variant storage
+
+### Technical Details 🔧
+- Updated `prepare_product_data()` to include variant arrays in API payload
+- Variants extracted with full details: SKU, pricing, attributes, stock, images, checkout URLs
+- Aligns WooCommerce plugin with existing Shopify variant functionality
+- No impact on simple products (backward compatible)
+
 ## [2.0.2] - 2026-01-28
 
 ### Enhanced 🚀

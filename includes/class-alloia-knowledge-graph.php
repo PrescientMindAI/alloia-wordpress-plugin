@@ -768,6 +768,29 @@ class AlloIA_Knowledge_Graph_Exporter {
             $product_data['in_stock'] = $properties['availability'];
         }
         
+        // Add variant data for variable products
+        if (!empty($properties['variants']) && is_array($properties['variants'])) {
+            $product_data['variants'] = $properties['variants'];
+            alloia_debug_log(sprintf(
+                'Product %s: Including %d variants in API payload',
+                $properties['name'],
+                count($properties['variants'])
+            ), 'Knowledge Graph');
+        }
+        
+        // Add variation metadata
+        if (!empty($properties['has_variations'])) {
+            $product_data['has_variations'] = $properties['has_variations'];
+        }
+        
+        if (!empty($properties['variation_count'])) {
+            $product_data['variation_count'] = $properties['variation_count'];
+        }
+        
+        if (!empty($properties['price_range'])) {
+            $product_data['price_range'] = $properties['price_range'];
+        }
+        
         return $product_data;
     }
     
