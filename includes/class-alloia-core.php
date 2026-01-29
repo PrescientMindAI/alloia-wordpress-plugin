@@ -1027,11 +1027,16 @@ class AlloIA_Core {
             return; // No slug available
         }
         
-        // Build AlloIA API URL
-        // Use product slug (URL handle) not SKU
+        // Get client domain for domain parameter (same as AI bot redirect)
+        $original_host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
+        
+        // Build AlloIA API URL with domain parameter
+        // This ensures ALL AI tools (crawlers AND conversational AI) can access the data
+        // Query parameter is critical because conversational AI tools don't send Referer headers
         $graph_url = sprintf(
-            'https://www.alloia.io/product/%s',
-            urlencode($product_slug)
+            'https://www.alloia.io/product/%s?domain=%s',
+            urlencode($product_slug),
+            urlencode($original_host)
         );
         
         // Output AI-optimized meta tags

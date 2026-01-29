@@ -5,6 +5,20 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-01-28
+
+### Enhanced 🚀
+- **Universal AI Access**: Updated `<link rel="alternate">` meta tags to include `?domain=` parameter
+  - Now supports ALL AI tools: web crawlers (GPTBot, ClaudeBot) AND conversational AI (ChatGPT web tool)
+  - Conversational AI tools don't send Referer headers, so domain parameter is embedded in URL
+  - Enables ChatGPT, Claude, and other conversational AI to fetch structured product data
+  - Example: `<link rel="alternate" href="https://www.alloia.io/product/slug?domain=client-site.com">`
+
+### Technical Details 🔧
+- **Use Case**: When users ask conversational AI about products, AI can fetch structured data from AlloIA graph
+- **Compatibility**: Works for both crawler-based indexing AND real-time conversational queries
+- **Security**: Domain gating still enforced - only authorized domains can access product data
+
 ## [2.0.1] - 2026-01-27
 
 ### Fixed 🐛
