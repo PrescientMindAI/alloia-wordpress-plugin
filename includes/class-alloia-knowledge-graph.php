@@ -143,26 +143,15 @@ class AlloIA_Knowledge_Graph_Exporter {
                 // Apply product type filters
                 $should_include = true;
                 
-                // HOTFIX DEBUG: Log product details
-                error_log("PRODUCT DEBUG - ID: {$post->ID}, Name: {$wc_product->get_name()}");
-                error_log("PRODUCT DEBUG - Is virtual: " . ($wc_product->is_virtual() ? 'YES' : 'NO'));
-                error_log("PRODUCT DEBUG - Is in stock: " . ($wc_product->is_in_stock() ? 'YES' : 'NO'));
-                error_log("PRODUCT DEBUG - Filter include_virtual: " . (isset($filters['include_virtual']) ? $filters['include_virtual'] : 'NOT SET'));
-                error_log("PRODUCT DEBUG - Filter include_out_of_stock: " . (isset($filters['include_out_of_stock']) ? $filters['include_out_of_stock'] : 'NOT SET'));
-                
                 // Check virtual products filter
                 if (empty($filters['include_virtual']) && $wc_product->is_virtual()) {
-                    error_log("PRODUCT DEBUG - EXCLUDED: Virtual product and include_virtual not set");
                     $should_include = false;
                 }
                 
                 // Check out of stock products filter
                 if (empty($filters['include_out_of_stock']) && !$wc_product->is_in_stock()) {
-                    error_log("PRODUCT DEBUG - EXCLUDED: Out of stock and include_out_of_stock not set");
                     $should_include = false;
                 }
-                
-                error_log("PRODUCT DEBUG - Should include: " . ($should_include ? 'YES' : 'NO'));
                 
                 if ($should_include) {
                     $products[] = $wc_product;
@@ -219,6 +208,9 @@ class AlloIA_Knowledge_Graph_Exporter {
         $product_id = $wc_product->get_id();
         $product_type = $wc_product->get_type();
         
+        $date_created  = $wc_product->get_date_created();
+        $date_modified = $wc_product->get_date_modified();
+
         $node = array(
             'id' => 'product-' . $product_id,
             'type' => 'product',
@@ -228,35 +220,47 @@ class AlloIA_Knowledge_Graph_Exporter {
                 $this->extract_manufacturer($wc_product)
             ),
             'properties' => array(
-                'clientId' => wp_parse_url(home_url(), PHP_URL_HOST),
-                'name' => $wc_product->get_name(),
-                'description' => $wc_product->get_description(),
+                'clientId'          => wp_parse_url(home_url(), PHP_URL_HOST),
+                'name'              => $wc_product->get_name(),
+                'description'       => $wc_product->get_description(),
                 'short_description' => $wc_product->get_short_description(),
-                'sku' => $wc_product->get_sku(),
-                'category' => $this->get_product_categories($wc_product),
-                'price' => $wc_product->get_price(),
-                'regular_price' => $wc_product->get_regular_price(),
-                'sale_price' => $wc_product->get_sale_price(),
-                'currency' => get_woocommerce_currency(),
-                'availability' => $wc_product->is_in_stock(),
-                'stock_quantity' => $wc_product->get_stock_quantity(),
-                'manufacturer' => $this->extract_manufacturer($wc_product),
-                'model' => $wc_product->get_sku(),
-                'images' => $this->get_product_images($wc_product),
-                'tags' => $this->get_product_tags($wc_product),
-                'attributes' => $this->get_product_attributes($wc_product),
+                'sku'               => $wc_product->get_sku(),
+                'category'          => $this->get_product_categories($wc_product),
+                'price'             => $wc_product->get_price(),
+                'regular_price'     => $wc_product->get_regular_price(),
+                'sale_price'        => $wc_product->get_sale_price(),
+                'currency'          => get_woocommerce_currency(),
+                'availability'      => $wc_product->is_in_stock(),
+                'in_stock'          => $wc_product->is_in_stock(),
+                'stock_status'      => $wc_product->get_stock_status(),
+                'stock_quantity'    => $wc_product->get_stock_quantity(),
+                'manufacturer'      => $this->extract_manufacturer($wc_product),
+                'model'             => $wc_product->get_sku(),
+                'images'            => $this->get_product_images($wc_product),
+                'tags'              => $this->get_product_tags($wc_product),
+                'attributes'        => $this->get_product_attributes($wc_product),
+                'characteristics'   => $this->get_product_characteristics($wc_product),
+                'gtin'              => $this->get_product_identifier($product_id, 'gtin'),
+                'ean'               => $this->get_product_identifier($product_id, 'ean'),
+                'upc'               => $this->get_product_identifier($product_id, 'upc'),
+                'isbn'              => $this->get_product_identifier($product_id, 'isbn'),
+                'mpn'               => $this->get_product_identifier($product_id, 'mpn'),
+                'condition'         => $this->get_product_condition($wc_product),
+                'associated_products' => $this->get_associated_products($wc_product),
                 'dimensions' => array(
                     'length' => $wc_product->get_length(),
-                    'width' => $wc_product->get_width(),
+                    'width'  => $wc_product->get_width(),
                     'height' => $wc_product->get_height(),
                     'weight' => $wc_product->get_weight()
                 ),
-                'createdAt' => $wc_product->get_date_created()->format('c'),
-                'updatedAt' => $wc_product->get_date_modified()->format('c'),
+                'date_created'  => $date_created  ? $date_created->format('c')  : null,
+                'date_modified' => $date_modified ? $date_modified->format('c') : null,
+                'createdAt'     => $date_created  ? $date_created->format('c')  : null,
+                'updatedAt'     => $date_modified ? $date_modified->format('c') : null,
                 'woocommerce_id' => $product_id,
-                'permalink' => get_permalink($product_id),
-                'slug' => $this->extract_url_slug($product_id),
-                'product_type' => $product_type
+                'permalink'      => get_permalink($product_id),
+                'slug'           => $this->extract_url_slug($product_id),
+                'product_type'   => $product_type
             )
         );
         
@@ -771,11 +775,6 @@ class AlloIA_Knowledge_Graph_Exporter {
         // Add variant data for variable products
         if (!empty($properties['variants']) && is_array($properties['variants'])) {
             $product_data['variants'] = $properties['variants'];
-            alloia_debug_log(sprintf(
-                'Product %s: Including %d variants in API payload',
-                $properties['name'],
-                count($properties['variants'])
-            ), 'Knowledge Graph');
         }
         
         // Add variation metadata
@@ -789,6 +788,37 @@ class AlloIA_Knowledge_Graph_Exporter {
         
         if (!empty($properties['price_range'])) {
             $product_data['price_range'] = $properties['price_range'];
+        }
+
+        // Data parity fields
+        if (!empty($properties['characteristics']) && is_array($properties['characteristics'])) {
+            $product_data['characteristics'] = $properties['characteristics'];
+        }
+
+        foreach (array('gtin', 'ean', 'upc', 'isbn', 'mpn') as $identifier) {
+            if (!empty($properties[$identifier])) {
+                $product_data[$identifier] = $properties[$identifier];
+            }
+        }
+
+        if (!empty($properties['condition'])) {
+            $product_data['condition'] = $properties['condition'];
+        }
+
+        if (!empty($properties['stock_status'])) {
+            $product_data['stock_status'] = $properties['stock_status'];
+        }
+
+        if (!empty($properties['associated_products']) && is_array($properties['associated_products'])) {
+            $product_data['associated_products'] = $properties['associated_products'];
+        }
+
+        if (!empty($properties['date_created'])) {
+            $product_data['date_created'] = $properties['date_created'];
+        }
+
+        if (!empty($properties['date_modified'])) {
+            $product_data['date_modified'] = $properties['date_modified'];
         }
         
         return $product_data;
@@ -862,15 +892,9 @@ class AlloIA_Knowledge_Graph_Exporter {
         $current_exported = get_option('alloia_products_exported', 0);
         $current_failed = get_option('alloia_products_export_failed', 0);
         
-        error_log("STATS UPDATE - Current: $current_exported, Adding: $exported_count, New Total: " . ($current_exported + $exported_count));
-        
         update_option('alloia_products_exported', $current_exported + $exported_count);
         update_option('alloia_products_export_failed', $current_failed + $failed_count);
         update_option('alloia_last_export_timestamp', current_time('mysql'));
-        
-        // Verify it was saved
-        $saved = get_option('alloia_products_exported', 0);
-        error_log("STATS UPDATE - Verified saved value: $saved");
     }
     
     /**
@@ -1226,5 +1250,116 @@ class AlloIA_Knowledge_Graph_Exporter {
         }
         
         return esc_url_raw($checkout_url);
+    }
+
+    /**
+     * Get product characteristics as {name, value} pairs (parity with PrestaShop/Shopify)
+     *
+     * @param WC_Product $wc_product
+     * @return array
+     */
+    private function get_product_characteristics($wc_product) {
+        $characteristics = array();
+        $product_attributes = $wc_product->get_attributes();
+
+        foreach ($product_attributes as $attribute) {
+            $name = wc_attribute_label($attribute->get_name());
+            if ($attribute->is_taxonomy()) {
+                $terms = wc_get_product_terms($wc_product->get_id(), $attribute->get_name());
+                if (!empty($terms) && !is_wp_error($terms)) {
+                    foreach ($terms as $term) {
+                        $characteristics[] = array('name' => $name, 'value' => $term->name);
+                    }
+                }
+            } else {
+                foreach ($attribute->get_options() as $option) {
+                    $characteristics[] = array('name' => $name, 'value' => $option);
+                }
+            }
+        }
+
+        return $characteristics;
+    }
+
+    /**
+     * Get a product identifier by type (gtin, ean, upc, isbn, mpn)
+     *
+     * @param int    $product_id
+     * @param string $type  One of: gtin, ean, upc, isbn, mpn
+     * @return string|null
+     */
+    private function get_product_identifier($product_id, $type) {
+        $meta_keys = array(
+            'gtin' => array('_gtin', '_global_unique_id', 'gtin'),
+            'ean'  => array('_ean', 'ean', '_barcode'),
+            'upc'  => array('_upc', 'upc'),
+            'isbn' => array('_isbn', 'isbn'),
+            'mpn'  => array('_mpn', 'mpn', '_manufacturer_part_number'),
+        );
+
+        if (!isset($meta_keys[$type])) {
+            return null;
+        }
+
+        foreach ($meta_keys[$type] as $key) {
+            $value = get_post_meta($product_id, $key, true);
+            if (!empty($value)) {
+                return sanitize_text_field($value);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get product condition (new, used, refurbished)
+     *
+     * @param WC_Product $wc_product
+     * @return string|null
+     */
+    private function get_product_condition($wc_product) {
+        $condition = get_post_meta($wc_product->get_id(), '_condition', true);
+        if (!empty($condition)) {
+            return sanitize_text_field($condition);
+        }
+
+        $attributes = $wc_product->get_attributes();
+        foreach ($attributes as $attribute) {
+            if (stripos($attribute->get_name(), 'condition') !== false) {
+                if ($attribute->is_taxonomy()) {
+                    $terms = wc_get_product_terms($wc_product->get_id(), $attribute->get_name());
+                    if (!empty($terms) && !is_wp_error($terms)) {
+                        return $terms[0]->name;
+                    }
+                } else {
+                    $options = $attribute->get_options();
+                    if (!empty($options)) {
+                        return $options[0];
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get associated products (upsells and cross-sells)
+     *
+     * @param WC_Product $wc_product
+     * @return array
+     */
+    private function get_associated_products($wc_product) {
+        $associated = array();
+
+        foreach ($wc_product->get_upsell_ids() as $id) {
+            $associated[] = array('id' => (string) $id, 'type' => 'upsell');
+        }
+
+        foreach ($wc_product->get_cross_sell_ids() as $id) {
+            $associated[] = array('id' => (string) $id, 'type' => 'cross_sell');
+        }
+
+        return $associated;
     }
 }

@@ -5,6 +5,20 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2026-02-28
+
+### Added 🆕
+- **AlloIA Sitemap in robots.txt**: `Sitemap: https://www.alloia.io/sitemap.xml?domain={your-domain}` now declared in all robots.txt generation paths (physical, WordPress filter, dynamic serve)
+- **Product Identifiers**: GTIN, EAN, UPC, ISBN, MPN extracted from product meta fields and sent to Knowledge Graph
+- **Product Characteristics**: Attributes exported as `{name, value}` pairs (parity with PrestaShop and Shopify plugins)
+- **Product Condition**: Condition field extracted from meta or attribute and synced
+- **Associated Products**: Upsells and cross-sells exported as `[{id, type}]` array
+- **Stock Status**: Explicit `stock_status` field (instock/outofstock/onbackorder) added to sync payload
+- **Timestamps**: `date_created` and `date_modified` ISO 8601 fields added to sync payload
+
+### Fixed 🐛
+- Removed always-firing `error_log` debug statements in product filtering and stats update (production performance)
+
 ## [2.0.3] - 2026-01-29
 
 ### Added 🆕

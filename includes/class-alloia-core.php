@@ -111,6 +111,15 @@ class AlloIA_Core {
         }
     }
 
+    private function get_client_domain() {
+        return wp_parse_url(home_url(), PHP_URL_HOST);
+    }
+
+    private function get_alloia_sitemap_url() {
+        $client_domain = $this->get_client_domain();
+        return 'https://www.alloia.io/sitemap.xml?domain=' . rawurlencode($client_domain);
+    }
+
     // Generate robots.txt content
     private function generate_robots_txt() {
         $llm_training = get_option('alloia_llm_training', 'allow');
@@ -134,6 +143,7 @@ class AlloIA_Core {
         
         // Add AlloIA block
         $output .= "# Start AlloIA block\n";
+        $output .= "Sitemap: " . $this->get_alloia_sitemap_url() . "\n";
         if ($subdomain) {
             $output .= "# Crawl $subdomain for content optimized for AI\n";
         }
@@ -467,6 +477,7 @@ class AlloIA_Core {
         }
         // Bloc AlloIA
         echo "# Start AlloIA block\n";
+        echo "Sitemap: " . esc_url($this->get_alloia_sitemap_url()) . "\n";
         if ($subdomain) {
             echo "# Crawl " . esc_html($subdomain) . " for content optimized for AI\n";
         }
@@ -528,6 +539,7 @@ class AlloIA_Core {
         
         // Add AlloIA block to robots.txt
         $alloia_content = "\n# Start AlloIA block\n";
+        $alloia_content .= "Sitemap: " . $this->get_alloia_sitemap_url() . "\n";
         if ($subdomain) {
             $alloia_content .= "# Crawl " . esc_html($subdomain) . " for content optimized for AI\n";
         }
@@ -1295,4 +1307,5 @@ class AlloIA_Core {
             'Applebot'
         );
     }
+
 } 
