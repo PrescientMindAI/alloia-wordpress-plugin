@@ -63,8 +63,17 @@ class AlloIA_API {
     }
     
     /**
+     * Get the resolved API base URL.
+     *
+     * @return string
+     */
+    public function get_base_url() {
+        return $this->base_url;
+    }
+
+    /**
      * Make an API request to AlloIA.io
-     * 
+     *
      * @param string $endpoint The API endpoint
      * @param string $method HTTP method (GET, POST, PUT, DELETE)
      * @param array $data Request data for POST/PUT requests
