@@ -38,6 +38,9 @@ class AlloIA_Core {
         // AI-optimized meta tags injection (for all traffic including Googlebot)
         add_action('wp_head', array($this, 'inject_ai_optimized_meta_tags'), 1);
 
+        // AI bot visit tracking — report site_visit events to AlloIA API (AI-INSIGHTS-003)
+        add_action('template_redirect', array($this, 'track_ai_bot_visit'));
+
         // Optional AI bot redirection (PHP/WP mode)
         // CRITICAL: Using muplugins_loaded for early interception before WordPress full load
         add_action('muplugins_loaded', array($this, 'maybe_redirect_ai_bots'), 1);
@@ -654,6 +657,65 @@ class AlloIA_Core {
      * Redirects AI bots to AlloIA graph API for superior product data
      * while protecting Google SEO rankings (Googlebot never redirected).
      * 
+     * AI-INSIGHTS-003: Track AI bot visits by sending site_visit events to the AlloIA API.
+     * Runs on template_redirect so is_product() and WooCommerce functions are available.
+     * Fire-and-forget: 1s timeout, errors silently ignored.
+     */
+    public function track_ai_bot_visit() {
+        if (is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) {
+            return;
+        }
+
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'])) : '';
+        if (empty($user_agent) || !$this->detect_ai_bot($user_agent)) {
+            return;
+        }
+
+        $api_key = get_option('alloia_api_key', '');
+        if (empty($api_key)) {
+            return;
+        }
+
+        // Determine event type and product SKU
+        $event_type = 'site_visit';
+        $product_sku = '';
+
+        if (function_exists('is_checkout') && is_checkout()) {
+            $event_type = 'checkout_click';
+        } elseif (function_exists('is_product') && is_product()) {
+            global $product;
+            if ($product && is_a($product, 'WC_Product')) {
+                $product_sku = $product->get_sku();
+            }
+        }
+
+        $url_visited = (is_ssl() ? 'https://' : 'http://') . (isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '') . (isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '');
+
+        $api = new AlloIA_API($api_key);
+        $base_url = $api->get_base_url();
+        $endpoint = rtrim($base_url, '/') . '/analytics/site-visit';
+
+        $body = wp_json_encode(array(
+            'event_type'     => $event_type,
+            'bot_user_agent' => $user_agent,
+            'url_visited'    => $url_visited,
+            'product_sku'    => $product_sku,
+            'metadata'       => array(),
+        ));
+
+        // Fire-and-forget — 1s timeout, non-blocking
+        wp_remote_post($endpoint, array(
+            'timeout'  => 1,
+            'blocking' => false,
+            'headers'  => array(
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type'  => 'application/json',
+            ),
+            'body' => $body,
+        ));
+    }
+
+    /**
      * CRITICAL: This function executes BEFORE WordPress fully loads
      * to minimize overhead. Exit immediately after redirect.
      */

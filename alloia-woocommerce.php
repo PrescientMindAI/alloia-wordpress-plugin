@@ -3,7 +3,7 @@
  * Plugin Name: GEO AI optimisation par AlloIA
  * Plugin URI: https://alloia.ai/plugins/woocommerce
  * Description: GEO AI optimisation pour WooCommerce. Gérez les permissions IA, redirigez les bots IA vers votre graphe de connaissances, optimisez pour les moteurs de recherche IA et débloquez des analytics avancés avec AlloIA.
- * Version: 2.0.5
+ * Version: 2.0.6
  * Author: AlloIA Team
  * Author URI: https://alloia.ai
  * License: GPL v2 or later
@@ -17,7 +17,7 @@
  * WooCommerce HPOS Compatible: true
  * 
  * @package AlloIA_WooCommerce
- * @version 2.0.3
+ * @version 2.0.6
  */
 
 // Exit if accessed directly
@@ -31,7 +31,7 @@ if (!defined('WP_DEBUG') || !WP_DEBUG) {
 }
 
 // Define plugin constants
-define('ALLOIA_VERSION', '2.0.5');
+define('ALLOIA_VERSION', '2.0.6');
 define('ALLOIA_PLUGIN_FILE', __FILE__);
 define('ALLOIA_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('ALLOIA_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -294,7 +294,7 @@ class AlloIA_WooCommerce {
         // 3. Site registration or tracking provisioning is needed
         // 4. Has pro subscription features enabled
         
-        $has_api_config = !empty(get_option('alloia_api_base_url', '')) || !empty(get_option('alloia_api_key', ''));
+        $has_api_config = !empty(get_option('alloia_api_key', ''));
         $is_admin_page = is_admin() && isset($_GET['page']) && $_GET['page'] === 'alloia-settings';
         $needs_registration = empty(get_option('alloia_tracking_website_id', ''));
         $has_pro_features = !empty(get_option('alloia_api_key', ''));
