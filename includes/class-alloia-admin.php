@@ -408,18 +408,6 @@ class AlloIA_Admin {
                 });
             }
         }
-        // API settings save
-        if (isset($_POST['alloia_save_api']) && check_admin_referer('alloia_api_settings', 'alloia_api_settings_nonce')) {
-            if (current_user_can('manage_options')) {
-                if (isset($_POST['alloia_api_base_url'])) {
-                    update_option('alloia_api_base_url', esc_url_raw(wp_unslash($_POST['alloia_api_base_url'])));
-                }
-                add_action('admin_notices', function() {
-                    echo '<div class="notice notice-success is-dismissible"><p>API settings updated.</p></div>';
-                });
-            }
-        }
-
         // Site registration via API relay
         if (isset($_POST['alloia_register_site']) && check_admin_referer('alloia_site_register', 'alloia_site_register_nonce')) {
             if (current_user_can('manage_options')) {
@@ -891,19 +879,15 @@ class AlloIA_Admin {
         // Test 2: Website API Configuration
         if (class_exists('AlloIA_API')) {
             $website_api = new AlloIA_API();
-            $api_base_url = get_option('alloia_api_base_url', 'default');
-            
             $results['website_api_config'] = array(
-                'api_base_url' => $api_base_url,
                 'api_key_set' => !empty(get_option('alloia_api_key', '')),
                 'api_key_preview' => !empty(get_option('alloia_api_key', '')) ? substr(get_option('alloia_api_key', ''), 0, 6) . '...' : 'Not set'
             );
         }
-        
+
         // Test 3: WordPress Options Check
         $options_to_check = array(
             'alloia_api_key' => 'Main API Key',
-            'alloia_api_base_url' => 'Custom API Base URL'
         );
         
         foreach ($options_to_check as $option => $description) {

@@ -4,7 +4,7 @@ Tags: ai, woocommerce, seo, robots-txt, ai-optimization
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 2.0.3
+Stable tag: 2.0.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -164,6 +164,10 @@ Yes! Each store needs its own API key. Contact sales for multi-store pricing.
 4. Product Sync Status - Real-time sync monitoring
 
 == Changelog ==
+
+= 2.0.6 - 2026-04-09 =
+* **Fixed:** Default API base URL now points to the new AlloIA public API host (`https://api.alloia.ai/api/v1`). Fresh installs no longer need any manual configuration to connect.
+* **Improved:** Custom API Base URL setting now accepts `https://host`, `https://host/api`, or `https://host/api/v1` and always normalizes to `/api/v1`, so no trailing-path guesswork is required.
 
 = 1.7.1 - 2025-12-06 =
 * **Major Cleanup:** Removed 2,379 lines of legacy code

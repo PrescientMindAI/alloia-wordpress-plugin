@@ -19,9 +19,10 @@ if (!defined('ABSPATH')) {
 class AlloIA_API {
     
     /**
-     * API base URL - AlloIA.io service
+     * API base URL — AlloIA public API.
+     * Customers installing the plugin with no custom configuration land here.
      */
-    private $base_url = 'https://www.alloia.io/api/v1';
+    private $base_url = 'https://api.alloia.ai/api/v1';
     
     /**
      * API version
@@ -50,16 +51,6 @@ class AlloIA_API {
             $this->api_key = $api_key;
         }
         
-        // Set base URL from options if available (for development/testing)
-        $custom_base_url = get_option('alloia_api_base_url', '');
-        if (!empty($custom_base_url)) {
-            // Ensure custom base URL includes /v1 if not present
-            $custom_base_url = rtrim($custom_base_url, '/');
-            if (substr($custom_base_url, -3) !== '/v1') {
-                $custom_base_url .= '/v1';
-            }
-            $this->base_url = $custom_base_url;
-        }
     }
     
     /**
