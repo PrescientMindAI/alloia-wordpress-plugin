@@ -1060,17 +1060,25 @@ class AlloIA_Core {
         // Meta tag for AI content source
         echo '<meta name="ai-content-source" content="' . esc_url($graph_url) . '">' . "\n";
         
-        // JSON-LD structured data with sameAs
+        // JSON-LD structured data
         // Google requires at least one of: offers, review, or aggregateRating
         $product_data = array(
             '@context' => 'https://schema.org',
             '@type' => 'Product',
             'url' => get_permalink(),
-            'sameAs' => $graph_url,
             'name' => $product->get_name(),
             'sku' => $product->get_sku(),
             'description' => wp_strip_all_tags($product->get_description())
         );
+
+        // Add product image when available
+        $image_id = $product->get_image_id();
+        if ( $image_id ) {
+            $image_url = wp_get_attachment_image_url( $image_id, 'full' );
+            if ( $image_url ) {
+                $product_data['image'] = $image_url;
+            }
+        }
         
         // Add offers (required by Google for rich results)
         if ($product->is_purchasable() && $product->is_in_stock()) {

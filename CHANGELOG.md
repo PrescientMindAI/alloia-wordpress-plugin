@@ -5,6 +5,12 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.6] - 2026-04-16
+
+### Fixed 🐛
+- Removed `sameAs` from JSON-LD Product schema — the AlloIA API URL is not a valid `sameAs` target and was causing Google Rich Results to flag the schema as a duplicate entity. Bot discovery is already covered by the `<link rel="alternate">` and `<meta name="ai-content-source">` tags.
+- Added `image` field to JSON-LD Product schema using the product featured image.
+
 ## [2.0.4] - 2026-02-28
 
 ### Added 🆕
