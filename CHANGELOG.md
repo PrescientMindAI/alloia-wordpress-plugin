@@ -5,6 +5,17 @@ All notable changes to this plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.7] - 2026-05-08
+
+### Added 🆕
+- **AI Bot Analytics Emission**: Plugin now fires a non-blocking `site_visit` event to the AlloIA analytics endpoint (`POST /api/v1/analytics/site-visit`) immediately before each AI bot redirect. Events are recorded as `original_site` interactions in the AI Insights dashboard.
+- **Checkout Click Tracking**: New `maybe_emit_checkout_event()` detects AI bots landing on the WooCommerce cart or checkout page and fires a `checkout_click` event. Runs at `template_redirect` where WooCommerce functions are fully available.
+
+### Technical Details 🔧
+- `emit_bot_event()`: fire-and-forget via `wp_remote_post()` with `blocking=false` and a 1-second timeout. Silently skips if the API key is not configured. No retry, no error propagation to the store visitor.
+- `maybe_emit_checkout_event()`: hooks on `template_redirect`, re-uses the existing `detect_ai_bot()` logic, calls `emit_bot_event('checkout_click', ...)` when `is_cart() || is_checkout()`.
+- Product SKU is omitted from `site_visit` events emitted during the redirect path (`muplugins_loaded` priority 1) — `wc_get_product()` is not available that early. Empty string is valid per the API contract.
+
 ## [2.0.6] - 2026-04-16
 
 ### Fixed 🐛

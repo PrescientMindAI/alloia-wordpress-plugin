@@ -31,6 +31,9 @@ class AlloIA_Core {
         add_action('template_redirect', array($this, 'serve_robots_txt'));
         add_action('do_robots', array($this, 'inject_robots_txt'));
         add_filter('robots_txt', array($this, 'filter_robots_txt'), 10, 2);
+
+        // Emit checkout_click analytics event when an AI bot lands on cart/checkout
+        add_action('template_redirect', array($this, 'maybe_emit_checkout_event'));
         
         // Tracking code injection
         add_action('wp_head', array($this, 'inject_tracking_code'));
@@ -725,7 +728,11 @@ class AlloIA_Core {
         
         // Log redirect for monitoring
         $this->log_ai_bot_redirect($user_agent, $request_uri, $graph_url);
-        
+
+        // Emit fire-and-forget analytics event before redirect.
+        // wc_get_product() is unavailable at muplugins_loaded priority 1; SKU omitted (valid per API contract).
+        $this->emit_bot_event( 'site_visit', home_url( $request_uri ) );
+
         // Perform 301 redirect with headers
         // Note: Custom headers may not be forwarded by AI bots following redirects,
         // but query parameter provides guaranteed fallback
@@ -739,7 +746,59 @@ class AlloIA_Core {
         // Exit immediately - no further WordPress processing
         exit;
     }
-    
+
+    /**
+     * Emit a non-blocking analytics event to AlloIA API.
+     * Fire-and-forget: 1s timeout, blocking=false, no retry, silent on missing key.
+     *
+     * @param string $event_type  'site_visit' | 'checkout_click'
+     * @param string $url_visited Full URL of the visited page
+     * @param string $product_sku Product SKU (empty string if not applicable)
+     */
+    private function emit_bot_event( string $event_type, string $url_visited, string $product_sku = '' ): void {
+        $api_key = get_option( 'alloia_api_key', '' );
+        if ( empty( $api_key ) ) {
+            return;
+        }
+
+        $payload = [
+            'event_type'     => $event_type,
+            'bot_user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '',
+            'url_visited'    => $url_visited,
+            'product_sku'    => $product_sku,
+            'metadata'       => [],
+        ];
+
+        wp_remote_post(
+            'https://www.alloia.io/api/v1/analytics/site-visit',
+            [
+                'headers'  => [
+                    'Authorization' => 'Bearer ' . $api_key,
+                    'Content-Type'  => 'application/json',
+                ],
+                'body'     => wp_json_encode( $payload ),
+                'timeout'  => 1,
+                'blocking' => false,
+                'sslverify'=> true,
+            ]
+        );
+    }
+
+    /**
+     * Emit a checkout_click event when an AI bot lands on the cart or checkout page.
+     * Runs at template_redirect where WooCommerce functions (is_cart, is_checkout) are available.
+     */
+    public function maybe_emit_checkout_event(): void {
+        $user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+        if ( ! $this->detect_ai_bot( $user_agent ) ) {
+            return;
+        }
+        if ( is_cart() || is_checkout() ) {
+            $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+            $this->emit_bot_event( 'checkout_click', home_url( $request_uri ) );
+        }
+    }
+
     /**
      * Check if user agent is traditional Googlebot (SEO crawler)
      * 
