@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build plugin ZIP
+        run: |
+          mkdir -p build/alloia-woocommerce
+          for item in alloia-woocommerce.php includes admin assets uninstall.php readme.txt; do
+            [ -e "$item" ] && cp -r "$item" build/alloia-woocommerce/
+          done
+          cd build
+          zip -r ../alloia-woocommerce.zip alloia-woocommerce/
+
+      - name: Upload ZIP to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: alloia-woocommerce.zip
